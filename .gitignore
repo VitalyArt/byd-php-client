@@ -1,0 +1,35 @@
+# Dependencies
+/vendor/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+runtime
+
+# Configuration
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+/build/
+
+# Composer
+composer.phar
+
+# Dev tools
+coverage/
+.phpunit.result.cache
+.php-cs-fixer.cache

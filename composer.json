@@ -1,0 +1,39 @@
+{
+  "name": "byd/api-client",
+  "description": "PHP client for BYD vehicle API",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Your Name",
+      "email": "your.email@example.com"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "ext-json": "*",
+    "guzzlehttp/guzzle": "^7.0",
+    "psr/log": "^3.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "friendsofphp/php-cs-fixer": "^3.0",
+    "phpstan/phpstan": "^2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Byd\\ApiClient\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Byd\\ApiClient\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "@php phpunit",
+    "cs-fix": "@php php-cs-fixer fix"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

@@ -1,0 +1,8 @@
+services:
+  php:
+    build:
+      dockerfile: docker/Dockerfile
+    volumes:
+      - .:/var/www/html
+    env_file:
+      - .env
