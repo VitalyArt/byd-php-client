@@ -17,6 +17,7 @@ class GpsInfo extends BaseModel
     private ?float $altitude = null;
     private ?float $speed = null;
     private ?float $heading = null;
+    private ?float $direction = null;
     private ?DateTimeInterface $timestamp = null;
     private ?string $positionType = null;
 
@@ -33,17 +34,18 @@ class GpsInfo extends BaseModel
      */
     protected function populate(array $data): void
     {
-        $this->latitude = isset($data['latitude']) ? (float) $data['latitude'] : null;
-        $this->longitude = isset($data['longitude']) ? (float) $data['longitude'] : null;
-        $this->altitude = isset($data['altitude']) ? (float) $data['altitude'] : null;
-        $this->speed = isset($data['speed']) ? (float) $data['speed'] : null;
-        $this->heading = isset($data['heading']) ? (float) $data['heading'] : null;
+        $this->latitude = isset($data['data']['latitude']) ? (float) $data['data']['latitude'] : null;
+        $this->longitude = isset($data['data']['longitude']) ? (float) $data['data']['longitude'] : null;
+        $this->altitude = isset($data['data']['altitude']) ? (float) $data['data']['altitude'] : null;
+        $this->speed = isset($data['data']['speed']) ? (float) $data['data']['speed'] : null;
+        $this->heading = isset($data['data']['heading']) ? (float) $data['data']['heading'] : null;
+        $this->direction = isset($data['data']['direction']) ? (float) $data['data']['direction'] : null;
 
-        if (isset($data['timestamp'])) {
-            $this->timestamp = $this->parseTimestamp($data['timestamp']);
+        if (isset($data['data']['gpsTimeStamp'])) {
+            $this->timestamp = $this->parseTimestamp($data['data']['gpsTimeStamp']);
         }
 
-        $this->positionType = isset($data['positionType']) ? (string) $data['positionType'] : null;
+        $this->positionType = isset($data['data']['positionType']) ? (string) $data['data']['positionType'] : null;
     }
 
     private function parseTimestamp($timestamp): ?DateTimeInterface
@@ -95,6 +97,11 @@ class GpsInfo extends BaseModel
     public function getHeading(): ?float
     {
         return $this->heading;
+    }
+
+    public function getDirection(): ?float
+    {
+        return $this->direction;
     }
 
     public function getTimestamp(): ?DateTimeInterface
