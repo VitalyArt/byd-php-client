@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Models;
 
-/**
- * Charging state indicator.
- */
-class ChargingState extends AbstractEnum
+enum ChargingState: int
 {
-    public const UNKNOWN = -1;
-    public const NOT_CHARGING = 0;
-    public const CHARGING = 1;
-    public const CONNECTED = 15; // charging gun connected, not actively charging
+    case UNKNOWN = -1;
+    case NOT_CHARGING = 0;
+    case CHARGING = 1;
+    case NOT_CONNECTED = 15;
 }

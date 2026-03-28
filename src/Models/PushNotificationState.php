@@ -13,8 +13,11 @@ use DateTimeInterface;
 class PushNotificationState extends BaseModel
 {
     private bool $enabled = false;
+
     private ?string $deviceId = null;
+
     private ?string $deviceToken = null;
+
     private ?DateTimeInterface $lastUpdate = null;
 
     /**

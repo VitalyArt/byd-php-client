@@ -34,6 +34,7 @@ class ClientTest extends TestCase
 
         $client = new Client($config);
 
+        $this->assertInstanceOf(Client::class, $client);
         $this->assertSame('test@example.com', $config->getUsername());
         $this->assertSame('password123', $config->getPassword());
         $this->assertSame('https://example.com', $config->getBaseUrl());

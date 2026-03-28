@@ -14,6 +14,7 @@ use function is_array;
 class SmartChargingApi
 {
     private const TOGGLE_ENDPOINT = '/control/smartCharge/changeChargeStatue';
+
     private const SAVE_ENDPOINT = '/control/smartCharge/saveOrUpdate';
 
     /**

@@ -15,25 +15,45 @@ use function is_array;
 class Vehicle extends BaseModel
 {
     private string $vin = '';
+
     private string $modelName = '';
+
     private string $brandName = '';
+
     private string $energyType = '';
+
     private string $autoAlias = '';
+
     private string $autoPlate = '';
+
     private string $picMainUrl = '';
+
     private string $picSetUrl = '';
+
     private string $outModelType = '';
+
     private ?float $totalMileage = null;
+
     private ?int $modelId = null;
+
     private ?int $carType = null;
+
     private bool $defaultCar = false;
+
     private ?int $empowerType = null;
+
     private ?int $permissionStatus = null;
+
     private string $tboxVersion = '';
+
     private string $vehicleState = '';
+
     private ?DateTimeInterface $autoBoughtTime = null;
+
     private ?DateTimeInterface $yunActiveTime = null;
+
     private ?int $empowerId = null;
+
     /**
      * @var EmpowerRange[]
      */
@@ -66,6 +86,7 @@ class Vehicle extends BaseModel
         if (isset($data['autoBoughtTime'])) {
             $this->autoBoughtTime = $this->parseTimestamp($data['autoBoughtTime']);
         }
+
         if (isset($data['yunActiveTime'])) {
             $this->yunActiveTime = $this->parseTimestamp($data['yunActiveTime']);
         }

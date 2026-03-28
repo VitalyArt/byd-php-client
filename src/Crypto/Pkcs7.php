@@ -29,7 +29,7 @@ class Pkcs7
     {
         $dataLength = strlen($data);
         $remainder = $dataLength % $blockSize;
-        $padLen = ($remainder == 0) ? $blockSize : ($blockSize - $remainder);
+        $padLen = ($remainder === 0) ? $blockSize : ($blockSize - $remainder);
 
         return $data . str_repeat(chr($padLen), $padLen);
     }

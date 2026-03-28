@@ -10,10 +10,15 @@ namespace Byd\ApiClient\Models;
 class SmartChargingSchedule extends BaseModel
 {
     private ?int $targetSoc = null;
+
     private ?int $startHour = null;
+
     private ?int $startMinute = null;
+
     private ?int $endHour = null;
+
     private ?int $endMinute = null;
+
     private bool $enabled = false;
 
     /**

@@ -11,60 +11,26 @@ use function is_array;
  */
 class BydConfig
 {
-    private string $username;
-    private string $password;
-    private string $baseUrl;
-    private string $countryCode;
-    private string $language;
-    private string $timeZone;
-    private string $appVersion;
-    private string $appInnerVersion;
-    private string $softType;
-    private string $tboxVersion;
-    private string $isAuto;
-    private ?string $controlPin;
-    private float $sessionTtl;
-    private bool $mqttEnabled;
-    private int $mqttKeepalive;
-    private float $mqttTimeout;
-    private DeviceProfile $device;
-
     public function __construct(
-        string $username,
-        string $password,
-        string $baseUrl = 'https://dilinkappoversea-eu.byd.auto',
-        string $countryCode = 'NL',
-        string $language = 'en',
-        string $timeZone = 'Europe/Amsterdam',
-        string $appVersion = '3.2.2',
-        string $appInnerVersion = '322',
-        string $softType = '0',
-        string $tboxVersion = '3',
-        string $isAuto = '1',
-        ?string $controlPin = null,
-        float $sessionTtl = 43200.0, // 12 hours
-        bool $mqttEnabled = true,
-        int $mqttKeepalive = 120,
-        float $mqttTimeout = 10.0,
-        ?DeviceProfile $device = null
+        private string $username,
+        private string $password,
+        private string $baseUrl = 'https://dilinkappoversea-eu.byd.auto',
+        private string $countryCode = 'NL',
+        private string $language = 'en',
+        private string $timeZone = 'Europe/Amsterdam',
+        private string $appVersion = '3.2.2',
+        private string $appInnerVersion = '322',
+        private string $softType = '0',
+        private string $tboxVersion = '3',
+        private string $isAuto = '1',
+        private ?string $controlPin = null,
+        private float $sessionTtl = 43200.0,
+        // 12 hours
+        private bool $mqttEnabled = true,
+        private int $mqttKeepalive = 120,
+        private float $mqttTimeout = 10.0,
+        private ?DeviceProfile $device = new DeviceProfile()
     ) {
-        $this->username = $username;
-        $this->password = $password;
-        $this->baseUrl = $baseUrl;
-        $this->countryCode = $countryCode;
-        $this->language = $language;
-        $this->timeZone = $timeZone;
-        $this->appVersion = $appVersion;
-        $this->appInnerVersion = $appInnerVersion;
-        $this->softType = $softType;
-        $this->tboxVersion = $tboxVersion;
-        $this->isAuto = $isAuto;
-        $this->controlPin = $controlPin;
-        $this->sessionTtl = $sessionTtl;
-        $this->mqttEnabled = $mqttEnabled;
-        $this->mqttKeepalive = $mqttKeepalive;
-        $this->mqttTimeout = $mqttTimeout;
-        $this->device = $device ?? new DeviceProfile();
     }
 
     public static function fromEnv(array $overrides = []): self
@@ -90,7 +56,6 @@ class BydConfig
                 $deviceOverrides['mobile_model'] ?? 'POCO F1',
                 $deviceOverrides['device_type'] ?? '0',
                 $deviceOverrides['network_type'] ?? 'wifi',
-                $deviceOverrides['os_type'] ?? '15',
                 $deviceOverrides['os_version'] ?? '35'
             );
         }

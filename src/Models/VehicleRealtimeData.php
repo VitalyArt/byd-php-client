@@ -17,121 +17,207 @@ use function in_array;
 class VehicleRealtimeData extends BaseModel
 {
     // Connection & state
-    private int $onlineState = -1;
-    private int $connectState = -1;
-    private int $vehicleState = -1;
+    private OnlineState $onlineState = OnlineState::UNKNOWN;
+
+    private ConnectState $connectState = ConnectState::UNKNOWN;
+
+    private VehicleState $vehicleState = VehicleState::UNKNOWN;
+
     private ?string $requestSerial = null;
 
     // Battery & range
     private ?float $elecPercent = null;
+
     private ?float $powerBattery = null;
+
     private ?float $enduranceMileage = null;
+
     private ?float $evEndurance = null;
+
     private ?float $enduranceMileageV2 = null;
+
     private ?string $enduranceMileageV2Unit = null;
+
     private ?float $totalMileage = null;
+
     private ?float $totalMileageV2 = null;
+
     private ?string $totalMileageV2Unit = null;
 
     // Driving
     private ?float $speed = null;
-    private ?int $powerGear = null;
+
+    private PowerGear $powerGear = PowerGear::UNKNOWN;
 
     // Climate
     private ?float $tempInCar = null;
+
     private ?int $mainSettingTemp = null;
+
     private ?float $mainSettingTempNew = null;
-    private ?int $airRunState = null;
+
+    private AirCirculationMode $airRunState = AirCirculationMode::UNKNOWN;
 
     // Seat heating/ventilation
-    private ?int $mainSeatHeatState = null;
-    private ?int $mainSeatVentilationState = null;
-    private ?int $copilotSeatHeatState = null;
-    private ?int $copilotSeatVentilationState = null;
-    private ?int $steeringWheelHeatState = null;
-    private ?int $lrSeatHeatState = null;
-    private ?int $lrSeatVentilationState = null;
-    private ?int $rrSeatHeatState = null;
-    private ?int $rrSeatVentilationState = null;
+    private SeatHeatVentState $mainSeatHeatState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $mainSeatVentilationState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $copilotSeatHeatState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $copilotSeatVentilationState = SeatHeatVentState::UNKNOWN;
+
+    private StearingWheelHeat $steeringWheelHeatState = StearingWheelHeat::OFF;
+
+    private SeatHeatVentState $lrSeatHeatState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $lrSeatVentilationState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $lrThirdHeatState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $lrThirdVentilationState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $rrSeatHeatState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $rrSeatVentilationState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $rrThirdHeatState = SeatHeatVentState::UNKNOWN;
+
+    private SeatHeatVentState $rrThirdVentilationState = SeatHeatVentState::UNKNOWN;
 
     // Charging
-    private int $chargingState = -1;
-    private ?int $chargeState = null;
+    private ChargingState $chargingState = ChargingState::UNKNOWN;
+
+    private ChargingState $chargeState = ChargingState::UNKNOWN;
+
     private ?int $waitStatus = null;
+
     private ?int $fullHour = null;
+
     private ?int $fullMinute = null;
+
     private ?int $remainingHours = null;
+
     private ?int $remainingMinutes = null;
+
     private ?int $bookingChargeState = null;
+
     private ?int $bookingChargingHour = null;
+
     private ?int $bookingChargingMinute = null;
 
     // Doors
-    private ?int $leftFrontDoor = null;
-    private ?int $rightFrontDoor = null;
-    private ?int $leftRearDoor = null;
-    private ?int $rightRearDoor = null;
-    private ?int $trunkLid = null;
-    private ?int $slidingDoor = null;
-    private ?int $forehold = null;
+    private DoorOpenState $leftFrontDoor = DoorOpenState::UNKNOWN;
+
+    private DoorOpenState $rightFrontDoor = DoorOpenState::UNKNOWN;
+
+    private DoorOpenState $leftRearDoor = DoorOpenState::UNKNOWN;
+
+    private DoorOpenState $rightRearDoor = DoorOpenState::UNKNOWN;
+
+    private DoorOpenState $trunkLid = DoorOpenState::UNKNOWN;
+
+    private DoorOpenState $slidingDoor = DoorOpenState::UNKNOWN;
+
+    private DoorOpenState $forehold = DoorOpenState::UNKNOWN;
 
     // Locks
-    private ?int $leftFrontDoorLock = null;
-    private ?int $rightFrontDoorLock = null;
-    private ?int $leftRearDoorLock = null;
-    private ?int $rightRearDoorLock = null;
-    private ?int $slidingDoorLock = null;
+    private LockState $leftFrontDoorLock = LockState::UNKNOWN;
+
+    private LockState $rightFrontDoorLock = LockState::UNKNOWN;
+
+    private LockState $leftRearDoorLock = LockState::UNKNOWN;
+
+    private LockState $rightRearDoorLock = LockState::UNKNOWN;
+
+    private LockState $slidingDoorLock = LockState::UNKNOWN;
 
     // Windows
-    private ?int $leftFrontWindow = null;
-    private ?int $rightFrontWindow = null;
-    private ?int $leftRearWindow = null;
-    private ?int $rightRearWindow = null;
-    private ?int $skylight = null;
+    private WindowState $leftFrontWindow = WindowState::UNKNOWN;
+
+    private WindowState $rightFrontWindow = WindowState::UNKNOWN;
+
+    private WindowState $leftRearWindow = WindowState::UNKNOWN;
+
+    private WindowState $rightRearWindow = WindowState::UNKNOWN;
+
+    private WindowState $skylight = WindowState::UNKNOWN;
 
     // Tire pressure
     private ?float $leftFrontTirePressure = null;
+
     private ?float $rightFrontTirePressure = null;
+
     private ?float $leftRearTirePressure = null;
+
     private ?float $rightRearTirePressure = null;
+
     private ?int $leftFrontTireStatus = null;
+
     private ?int $rightFrontTireStatus = null;
+
     private ?int $leftRearTireStatus = null;
+
     private ?int $rightRearTireStatus = null;
-    private ?int $tirePressUnit = null;
+
+    private TirePressureUnit $tirePressUnit = TirePressureUnit::UNKNOWN;
+
     private ?int $tirepressureSystem = null;
+
     private ?int $rapidTireLeak = null;
 
     // Energy consumption
     private ?float $totalPower = null;
+
     private ?float $gl = null;
+
     private ?string $totalEnergy = null;
+
     private ?string $nearestEnergyConsumption = null;
+
     private ?string $nearestEnergyConsumptionUnit = null;
+
     private ?string $recent50kmEnergy = null;
+
+    private ?float $energyConsumption = null;
 
     // Fuel (hybrid vehicles)
     private ?float $oilEndurance = null;
+
     private ?float $oilPercent = null;
+
     private ?float $totalOil = null;
 
     // System indicators
     private ?int $powerSystem = null;
+
     private ?int $engineStatus = null;
+
     private ?int $epb = null;
+
     private ?int $eps = null;
+
     private ?int $esp = null;
+
     private ?int $absWarning = null;
+
     private ?int $svs = null;
+
     private ?int $srs = null;
+
     private ?int $ect = null;
+
     private ?int $ectValue = null;
+
     private ?int $pwr = null;
 
     // Feature states
     private ?int $sentryStatus = null;
+
     private ?int $batteryHeatState = null;
+
     private ?int $chargeHeatState = null;
+
     private ?int $upgradeStatus = null;
 
     // Metadata
@@ -142,7 +228,7 @@ class VehicleRealtimeData extends BaseModel
      */
     protected function populate(array $data): void
     {
-        // Apply key aliases
+        // Apply key aliases (BYD API uses inconsistent naming)
         $aliases = [
             'backCover' => 'trunkLid',
             'leftFrontTirepressure' => 'leftFrontTirePressure',
@@ -151,7 +237,6 @@ class VehicleRealtimeData extends BaseModel
             'rightRearTirepressure' => 'rightRearTirePressure',
             'abs' => 'absWarning',
             'time' => 'timestamp',
-            'recent50kmEnergy' => 'recent50KmEnergy',
             'stearingWheelHeatState' => 'steeringWheelHeatState',
         ];
 
@@ -163,9 +248,9 @@ class VehicleRealtimeData extends BaseModel
         }
 
         // Connection & state
-        $this->onlineState = (int) ($data['onlineState'] ?? -1);
-        $this->connectState = (int) ($data['connectState'] ?? -1);
-        $this->vehicleState = (int) ($data['vehicleState'] ?? -1);
+        $this->onlineState = OnlineState::tryFrom((int) ($data['onlineState'] ?? -1)) ?? OnlineState::UNKNOWN;
+        $this->connectState = ConnectState::tryFrom((int) ($data['connectState'] ?? -1)) ?? ConnectState::UNKNOWN;
+        $this->vehicleState = VehicleState::tryFrom((int) ($data['vehicleState'] ?? -1)) ?? VehicleState::UNKNOWN;
         $this->requestSerial = isset($data['requestSerial']) ? (string) $data['requestSerial'] : null;
 
         // Battery & range
@@ -181,59 +266,74 @@ class VehicleRealtimeData extends BaseModel
 
         // Driving
         $this->speed = isset($data['speed']) ? (float) $data['speed'] : null;
-        $this->powerGear = isset($data['powerGear']) ? (int) $data['powerGear'] : null;
+        $this->powerGear = PowerGear::tryFrom((int) ($data['powerGear'] ?? -1)) ?? PowerGear::UNKNOWN;
 
-        // Climate
-        $this->tempInCar = isset($data['tempInCar']) ? (float) $data['tempInCar'] : null;
+        // Climate — tempInCar uses -129 as "no data" sentinel
+        $rawTempInCar = isset($data['tempInCar']) ? (float) $data['tempInCar'] : null;
+        $this->tempInCar = ($rawTempInCar !== null && $rawTempInCar <= -100.0) ? null : $rawTempInCar;
+
         $this->mainSettingTemp = isset($data['mainSettingTemp']) ? (int) $data['mainSettingTemp'] : null;
         $this->mainSettingTempNew = isset($data['mainSettingTempNew']) ? (float) $data['mainSettingTempNew'] : null;
-        $this->airRunState = isset($data['airRunState']) ? (int) $data['airRunState'] : null;
+        $this->airRunState = AirCirculationMode::tryFrom((int) ($data['airRunState'] ?? -1)) ?? AirCirculationMode::UNKNOWN;
 
         // Seat heating/ventilation
-        $this->mainSeatHeatState = isset($data['mainSeatHeatState']) ? (int) $data['mainSeatHeatState'] : null;
-        $this->mainSeatVentilationState = isset($data['mainSeatVentilationState']) ? (int) $data['mainSeatVentilationState'] : null;
-        $this->copilotSeatHeatState = isset($data['copilotSeatHeatState']) ? (int) $data['copilotSeatHeatState'] : null;
-        $this->copilotSeatVentilationState = isset($data['copilotSeatVentilationState']) ? (int) $data['copilotSeatVentilationState'] : null;
-        $this->steeringWheelHeatState = isset($data['steeringWheelHeatState']) ? (int) $data['steeringWheelHeatState'] : null;
-        $this->lrSeatHeatState = isset($data['lrSeatHeatState']) ? (int) $data['lrSeatHeatState'] : null;
-        $this->lrSeatVentilationState = isset($data['lrSeatVentilationState']) ? (int) $data['lrSeatVentilationState'] : null;
-        $this->rrSeatHeatState = isset($data['rrSeatHeatState']) ? (int) $data['rrSeatHeatState'] : null;
-        $this->rrSeatVentilationState = isset($data['rrSeatVentilationState']) ? (int) $data['rrSeatVentilationState'] : null;
+        $this->mainSeatHeatState = SeatHeatVentState::tryFrom((int) ($data['mainSeatHeatState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->mainSeatVentilationState = SeatHeatVentState::tryFrom((int) ($data['mainSeatVentilationState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->copilotSeatHeatState = SeatHeatVentState::tryFrom((int) ($data['copilotSeatHeatState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->copilotSeatVentilationState = SeatHeatVentState::tryFrom((int) ($data['copilotSeatVentilationState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->steeringWheelHeatState = StearingWheelHeat::tryFrom((int) ($data['steeringWheelHeatState'] ?? 1)) ?? StearingWheelHeat::OFF;
+        $this->lrSeatHeatState = SeatHeatVentState::tryFrom((int) ($data['lrSeatHeatState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->lrSeatVentilationState = SeatHeatVentState::tryFrom((int) ($data['lrSeatVentilationState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->lrThirdHeatState = SeatHeatVentState::tryFrom((int) ($data['lrThirdHeatState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->lrThirdVentilationState = SeatHeatVentState::tryFrom((int) ($data['lrThirdVentilationState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->rrSeatHeatState = SeatHeatVentState::tryFrom((int) ($data['rrSeatHeatState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->rrSeatVentilationState = SeatHeatVentState::tryFrom((int) ($data['rrSeatVentilationState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->rrThirdHeatState = SeatHeatVentState::tryFrom((int) ($data['rrThirdHeatState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
+        $this->rrThirdVentilationState = SeatHeatVentState::tryFrom((int) ($data['rrThirdVentilationState'] ?? -1)) ?? SeatHeatVentState::UNKNOWN;
 
-        // Charging
-        $this->chargingState = (int) ($data['chargingState'] ?? -1);
-        $this->chargeState = isset($data['chargeState']) ? (int) $data['chargeState'] : null;
+        // Charging — use -1 (UNKNOWN) sentinel as null for hours/minutes
+        $this->chargingState = ChargingState::tryFrom((int) ($data['chargingState'] ?? -1)) ?? ChargingState::UNKNOWN;
+        $this->chargeState = ChargingState::tryFrom((int) ($data['chargeState'] ?? -1)) ?? ChargingState::UNKNOWN;
         $this->waitStatus = isset($data['waitStatus']) ? (int) $data['waitStatus'] : null;
-        $this->fullHour = isset($data['fullHour']) ? (int) $data['fullHour'] : null;
-        $this->fullMinute = isset($data['fullMinute']) ? (int) $data['fullMinute'] : null;
-        $this->remainingHours = isset($data['remainingHours']) ? (int) $data['remainingHours'] : null;
-        $this->remainingMinutes = isset($data['remainingMinutes']) ? (int) $data['remainingMinutes'] : null;
+
+        $rawFullHour = isset($data['fullHour']) ? (int) $data['fullHour'] : null;
+        $this->fullHour = ($rawFullHour !== null && $rawFullHour < 0) ? null : $rawFullHour;
+
+        $rawFullMinute = isset($data['fullMinute']) ? (int) $data['fullMinute'] : null;
+        $this->fullMinute = ($rawFullMinute !== null && $rawFullMinute < 0) ? null : $rawFullMinute;
+
+        $rawRemainingHours = isset($data['remainingHours']) ? (int) $data['remainingHours'] : null;
+        $this->remainingHours = ($rawRemainingHours !== null && $rawRemainingHours < 0) ? null : $rawRemainingHours;
+
+        $rawRemainingMinutes = isset($data['remainingMinutes']) ? (int) $data['remainingMinutes'] : null;
+        $this->remainingMinutes = ($rawRemainingMinutes !== null && $rawRemainingMinutes < 0) ? null : $rawRemainingMinutes;
+
         $this->bookingChargeState = isset($data['bookingChargeState']) ? (int) $data['bookingChargeState'] : null;
         $this->bookingChargingHour = isset($data['bookingChargingHour']) ? (int) $data['bookingChargingHour'] : null;
         $this->bookingChargingMinute = isset($data['bookingChargingMinute']) ? (int) $data['bookingChargingMinute'] : null;
 
         // Doors
-        $this->leftFrontDoor = isset($data['leftFrontDoor']) ? (int) $data['leftFrontDoor'] : null;
-        $this->rightFrontDoor = isset($data['rightFrontDoor']) ? (int) $data['rightFrontDoor'] : null;
-        $this->leftRearDoor = isset($data['leftRearDoor']) ? (int) $data['leftRearDoor'] : null;
-        $this->rightRearDoor = isset($data['rightRearDoor']) ? (int) $data['rightRearDoor'] : null;
-        $this->trunkLid = isset($data['trunkLid']) ? (int) $data['trunkLid'] : null;
-        $this->slidingDoor = isset($data['slidingDoor']) ? (int) $data['slidingDoor'] : null;
-        $this->forehold = isset($data['forehold']) ? (int) $data['forehold'] : null;
+        $this->leftFrontDoor = DoorOpenState::tryFrom((int) ($data['leftFrontDoor'] ?? -1)) ?? DoorOpenState::UNKNOWN;
+        $this->rightFrontDoor = DoorOpenState::tryFrom((int) ($data['rightFrontDoor'] ?? -1)) ?? DoorOpenState::UNKNOWN;
+        $this->leftRearDoor = DoorOpenState::tryFrom((int) ($data['leftRearDoor'] ?? -1)) ?? DoorOpenState::UNKNOWN;
+        $this->rightRearDoor = DoorOpenState::tryFrom((int) ($data['rightRearDoor'] ?? -1)) ?? DoorOpenState::UNKNOWN;
+        $this->trunkLid = DoorOpenState::tryFrom((int) ($data['trunkLid'] ?? -1)) ?? DoorOpenState::UNKNOWN;
+        $this->slidingDoor = DoorOpenState::tryFrom((int) ($data['slidingDoor'] ?? -1)) ?? DoorOpenState::UNKNOWN;
+        $this->forehold = DoorOpenState::tryFrom((int) ($data['forehold'] ?? -1)) ?? DoorOpenState::UNKNOWN;
 
         // Locks
-        $this->leftFrontDoorLock = isset($data['leftFrontDoorLock']) ? (int) $data['leftFrontDoorLock'] : null;
-        $this->rightFrontDoorLock = isset($data['rightFrontDoorLock']) ? (int) $data['rightFrontDoorLock'] : null;
-        $this->leftRearDoorLock = isset($data['leftRearDoorLock']) ? (int) $data['leftRearDoorLock'] : null;
-        $this->rightRearDoorLock = isset($data['rightRearDoorLock']) ? (int) $data['rightRearDoorLock'] : null;
-        $this->slidingDoorLock = isset($data['slidingDoorLock']) ? (int) $data['slidingDoorLock'] : null;
+        $this->leftFrontDoorLock = LockState::tryFrom((int) ($data['leftFrontDoorLock'] ?? -1)) ?? LockState::UNKNOWN;
+        $this->rightFrontDoorLock = LockState::tryFrom((int) ($data['rightFrontDoorLock'] ?? -1)) ?? LockState::UNKNOWN;
+        $this->leftRearDoorLock = LockState::tryFrom((int) ($data['leftRearDoorLock'] ?? -1)) ?? LockState::UNKNOWN;
+        $this->rightRearDoorLock = LockState::tryFrom((int) ($data['rightRearDoorLock'] ?? -1)) ?? LockState::UNKNOWN;
+        $this->slidingDoorLock = LockState::tryFrom((int) ($data['slidingDoorLock'] ?? -1)) ?? LockState::UNKNOWN;
 
         // Windows
-        $this->leftFrontWindow = isset($data['leftFrontWindow']) ? (int) $data['leftFrontWindow'] : null;
-        $this->rightFrontWindow = isset($data['rightFrontWindow']) ? (int) $data['rightFrontWindow'] : null;
-        $this->leftRearWindow = isset($data['leftRearWindow']) ? (int) $data['leftRearWindow'] : null;
-        $this->rightRearWindow = isset($data['rightRearWindow']) ? (int) $data['rightRearWindow'] : null;
-        $this->skylight = isset($data['skylight']) ? (int) $data['skylight'] : null;
+        $this->leftFrontWindow = WindowState::tryFrom((int) ($data['leftFrontWindow'] ?? -1)) ?? WindowState::UNKNOWN;
+        $this->rightFrontWindow = WindowState::tryFrom((int) ($data['rightFrontWindow'] ?? -1)) ?? WindowState::UNKNOWN;
+        $this->leftRearWindow = WindowState::tryFrom((int) ($data['leftRearWindow'] ?? -1)) ?? WindowState::UNKNOWN;
+        $this->rightRearWindow = WindowState::tryFrom((int) ($data['rightRearWindow'] ?? -1)) ?? WindowState::UNKNOWN;
+        $this->skylight = WindowState::tryFrom((int) ($data['skylight'] ?? -1)) ?? WindowState::UNKNOWN;
 
         // Tire pressure
         $this->leftFrontTirePressure = isset($data['leftFrontTirePressure']) ? (float) $data['leftFrontTirePressure'] : null;
@@ -244,7 +344,7 @@ class VehicleRealtimeData extends BaseModel
         $this->rightFrontTireStatus = isset($data['rightFrontTireStatus']) ? (int) $data['rightFrontTireStatus'] : null;
         $this->leftRearTireStatus = isset($data['leftRearTireStatus']) ? (int) $data['leftRearTireStatus'] : null;
         $this->rightRearTireStatus = isset($data['rightRearTireStatus']) ? (int) $data['rightRearTireStatus'] : null;
-        $this->tirePressUnit = isset($data['tirePressUnit']) ? (int) $data['tirePressUnit'] : null;
+        $this->tirePressUnit = TirePressureUnit::tryFrom((int) ($data['tirePressUnit'] ?? -1)) ?? TirePressureUnit::UNKNOWN;
         $this->tirepressureSystem = isset($data['tirepressureSystem']) ? (int) $data['tirepressureSystem'] : null;
         $this->rapidTireLeak = isset($data['rapidTireLeak']) ? (int) $data['rapidTireLeak'] : null;
 
@@ -255,13 +355,17 @@ class VehicleRealtimeData extends BaseModel
         $this->nearestEnergyConsumption = isset($data['nearestEnergyConsumption']) ? (string) $data['nearestEnergyConsumption'] : null;
         $this->nearestEnergyConsumptionUnit = isset($data['nearestEnergyConsumptionUnit']) ? (string) $data['nearestEnergyConsumptionUnit'] : null;
         $this->recent50kmEnergy = isset($data['recent50kmEnergy']) ? (string) $data['recent50kmEnergy'] : null;
+        $this->energyConsumption = isset($data['energyConsumption']) ? (float) $data['energyConsumption'] : null;
 
-        // Fuel (hybrid vehicles)
-        $this->oilEndurance = isset($data['oilEndurance']) ? (float) $data['oilEndurance'] : null;
+        // Fuel (hybrid vehicles) — oilEndurance uses -1 as "no data" sentinel
+        $rawOilEndurance = isset($data['oilEndurance']) ? (float) $data['oilEndurance'] : null;
+        $this->oilEndurance = ($rawOilEndurance !== null && $rawOilEndurance < 0) ? null : $rawOilEndurance;
+
         $this->oilPercent = isset($data['oilPercent']) ? (float) $data['oilPercent'] : null;
+
         $this->totalOil = isset($data['totalOil']) ? (float) $data['totalOil'] : null;
 
-        // System indicators
+        // System indicators — ectValue uses -1 as "no data" sentinel
         $this->powerSystem = isset($data['powerSystem']) ? (int) $data['powerSystem'] : null;
         $this->engineStatus = isset($data['engineStatus']) ? (int) $data['engineStatus'] : null;
         $this->epb = isset($data['epb']) ? (int) $data['epb'] : null;
@@ -271,7 +375,10 @@ class VehicleRealtimeData extends BaseModel
         $this->svs = isset($data['svs']) ? (int) $data['svs'] : null;
         $this->srs = isset($data['srs']) ? (int) $data['srs'] : null;
         $this->ect = isset($data['ect']) ? (int) $data['ect'] : null;
-        $this->ectValue = isset($data['ectValue']) ? (int) $data['ectValue'] : null;
+
+        $rawEctValue = isset($data['ectValue']) ? (int) $data['ectValue'] : null;
+        $this->ectValue = ($rawEctValue !== null && $rawEctValue < 0) ? null : $rawEctValue;
+
         $this->pwr = isset($data['pwr']) ? (int) $data['pwr'] : null;
 
         // Feature states
@@ -286,19 +393,18 @@ class VehicleRealtimeData extends BaseModel
         }
     }
 
-    private function parseTimestamp($timestamp): ?DateTimeInterface
+    private function parseTimestamp(mixed $timestamp): ?DateTimeInterface
     {
         if ($timestamp === null) {
             return null;
         }
 
         $ts = (int) $timestamp;
-        // Threshold to distinguish seconds from milliseconds.
         if ($ts >= 1000000000000) {
             $ts = (int) ($ts / 1000);
         }
 
-        return DateTimeImmutable::createFromFormat('U', (string) $ts);
+        return DateTimeImmutable::createFromFormat('U', (string) $ts) ?: null;
     }
 
     /**
@@ -308,11 +414,11 @@ class VehicleRealtimeData extends BaseModel
      */
     public static function isReadyRaw(array $vehicleInfo): bool
     {
-        if (empty($vehicleInfo)) {
+        if ($vehicleInfo === []) {
             return false;
         }
 
-        if (isset($vehicleInfo['onlineState']) && (int) $vehicleInfo['onlineState'] === 2) { // OFFLINE
+        if (isset($vehicleInfo['onlineState']) && (int) $vehicleInfo['onlineState'] === 2) {
             return false;
         }
 
@@ -329,22 +435,22 @@ class VehicleRealtimeData extends BaseModel
             }
         }
 
-        if (isset($vehicleInfo['time']) && (int) ($vehicleInfo['time'] ?? 0) > 0) {
+        if (isset($vehicleInfo['time']) && (int) $vehicleInfo['time'] > 0) {
             return true;
         }
 
-        return isset($vehicleInfo['enduranceMileage']) && (float) ($vehicleInfo['enduranceMileage'] ?? 0) > 0;
+        return isset($vehicleInfo['enduranceMileage']) && (float) $vehicleInfo['enduranceMileage'] > 0;
     }
 
     // Convenience properties
     public function isOnline(): bool
     {
-        return $this->onlineState === 1; // ONLINE
+        return $this->onlineState === OnlineState::ONLINE;
     }
 
     public function isCharging(): bool
     {
-        return $this->chargingState === 1; // CHARGING
+        return $this->chargingState === ChargingState::CHARGING;
     }
 
     public function getTimeToFullMinutes(): ?int
@@ -358,8 +464,6 @@ class VehicleRealtimeData extends BaseModel
 
     public function isInteriorTempAvailable(): bool
     {
-        // After sentinel normalisation tempInCar is null when
-        // the BYD API returned -129, so a simple is not null suffices.
         return $this->tempInCar !== null;
     }
 
@@ -372,19 +476,14 @@ class VehicleRealtimeData extends BaseModel
             $this->rightRearDoorLock,
         ];
 
-        $skipValues = [null, -1, 0]; // null, UNKNOWN, UNAVAILABLE
-        $known = array_filter($locks, function ($lk) use ($skipValues) {
-            return !in_array($lk, $skipValues, true);
-        });
+        $skipValues = [LockState::UNKNOWN, LockState::UNAVAILABLE];
+        $known = array_filter($locks, fn (LockState $lk): bool => !in_array($lk, $skipValues, true));
 
-        if (empty($known)) {
+        if ($known === []) {
             return null;
         }
 
-        // LOCKED = 2
-        return count(array_filter($known, function ($lk) {
-            return $lk === 2;
-        })) === count($known);
+        return count(array_filter($known, fn ($lk): bool => $lk === LockState::LOCKED)) === count($known);
     }
 
     public function isAnyDoorOpen(): bool
@@ -399,10 +498,7 @@ class VehicleRealtimeData extends BaseModel
             $this->forehold,
         ];
 
-        // OPEN = 1
-        return count(array_filter($doors, function ($d) {
-            return $d === 1;
-        })) > 0;
+        return array_filter($doors, fn (DoorOpenState $d): bool => $d === DoorOpenState::OPEN) !== [];
     }
 
     public function isAnyWindowOpen(): bool
@@ -415,15 +511,12 @@ class VehicleRealtimeData extends BaseModel
             $this->skylight,
         ];
 
-        // OPEN = 2
-        return count(array_filter($windows, function ($w) {
-            return $w === 2;
-        })) > 0;
+        return array_filter($windows, fn (WindowState $w): bool => $w === WindowState::OPEN) !== [];
     }
 
     public function isVehicleOn(): bool
     {
-        return $this->powerGear === 3; // ON
+        return $this->powerGear === PowerGear::ON;
     }
 
     public function isBatteryHeating(): ?bool
@@ -435,28 +528,23 @@ class VehicleRealtimeData extends BaseModel
         return (bool) $this->batteryHeatState;
     }
 
-    public function isSteeringWheelHeating(): ?bool
+    public function isSteeringWheelHeating(): bool
     {
-        if ($this->steeringWheelHeatState === null) {
-            return null;
-        }
-
-        // ON = -1 (makes no sense, but confirmed)
-        return $this->steeringWheelHeatState === -1;
+        return $this->steeringWheelHeatState === StearingWheelHeat::ON;
     }
 
     // Getters
-    public function getOnlineState(): int
+    public function getOnlineState(): OnlineState
     {
         return $this->onlineState;
     }
 
-    public function getConnectState(): int
+    public function getConnectState(): ConnectState
     {
         return $this->connectState;
     }
 
-    public function getVehicleState(): int
+    public function getVehicleState(): VehicleState
     {
         return $this->vehicleState;
     }
@@ -516,7 +604,7 @@ class VehicleRealtimeData extends BaseModel
         return $this->speed;
     }
 
-    public function getPowerGear(): ?int
+    public function getPowerGear(): PowerGear
     {
         return $this->powerGear;
     }
@@ -536,62 +624,82 @@ class VehicleRealtimeData extends BaseModel
         return $this->mainSettingTempNew;
     }
 
-    public function getAirRunState(): ?int
+    public function getAirRunState(): AirCirculationMode
     {
         return $this->airRunState;
     }
 
-    public function getMainSeatHeatState(): ?int
+    public function getMainSeatHeatState(): SeatHeatVentState
     {
         return $this->mainSeatHeatState;
     }
 
-    public function getMainSeatVentilationState(): ?int
+    public function getMainSeatVentilationState(): SeatHeatVentState
     {
         return $this->mainSeatVentilationState;
     }
 
-    public function getCopilotSeatHeatState(): ?int
+    public function getCopilotSeatHeatState(): SeatHeatVentState
     {
         return $this->copilotSeatHeatState;
     }
 
-    public function getCopilotSeatVentilationState(): ?int
+    public function getCopilotSeatVentilationState(): SeatHeatVentState
     {
         return $this->copilotSeatVentilationState;
     }
 
-    public function getSteeringWheelHeatState(): ?int
+    public function getSteeringWheelHeatState(): StearingWheelHeat
     {
         return $this->steeringWheelHeatState;
     }
 
-    public function getLrSeatHeatState(): ?int
+    public function getLrSeatHeatState(): SeatHeatVentState
     {
         return $this->lrSeatHeatState;
     }
 
-    public function getLrSeatVentilationState(): ?int
+    public function getLrSeatVentilationState(): SeatHeatVentState
     {
         return $this->lrSeatVentilationState;
     }
 
-    public function getRrSeatHeatState(): ?int
+    public function getLrThirdHeatState(): SeatHeatVentState
+    {
+        return $this->lrThirdHeatState;
+    }
+
+    public function getLrThirdVentilationState(): SeatHeatVentState
+    {
+        return $this->lrThirdVentilationState;
+    }
+
+    public function getRrSeatHeatState(): SeatHeatVentState
     {
         return $this->rrSeatHeatState;
     }
 
-    public function getRrSeatVentilationState(): ?int
+    public function getRrSeatVentilationState(): SeatHeatVentState
     {
         return $this->rrSeatVentilationState;
     }
 
-    public function getChargingState(): int
+    public function getRrThirdHeatState(): SeatHeatVentState
+    {
+        return $this->rrThirdHeatState;
+    }
+
+    public function getRrThirdVentilationState(): SeatHeatVentState
+    {
+        return $this->rrThirdVentilationState;
+    }
+
+    public function getChargingState(): ChargingState
     {
         return $this->chargingState;
     }
 
-    public function getChargeState(): ?int
+    public function getChargeState(): ChargingState
     {
         return $this->chargeState;
     }
@@ -636,87 +744,87 @@ class VehicleRealtimeData extends BaseModel
         return $this->bookingChargingMinute;
     }
 
-    public function getLeftFrontDoor(): ?int
+    public function getLeftFrontDoor(): DoorOpenState
     {
         return $this->leftFrontDoor;
     }
 
-    public function getRightFrontDoor(): ?int
+    public function getRightFrontDoor(): DoorOpenState
     {
         return $this->rightFrontDoor;
     }
 
-    public function getLeftRearDoor(): ?int
+    public function getLeftRearDoor(): DoorOpenState
     {
         return $this->leftRearDoor;
     }
 
-    public function getRightRearDoor(): ?int
+    public function getRightRearDoor(): DoorOpenState
     {
         return $this->rightRearDoor;
     }
 
-    public function getTrunkLid(): ?int
+    public function getTrunkLid(): DoorOpenState
     {
         return $this->trunkLid;
     }
 
-    public function getSlidingDoor(): ?int
+    public function getSlidingDoor(): DoorOpenState
     {
         return $this->slidingDoor;
     }
 
-    public function getForehold(): ?int
+    public function getForehold(): DoorOpenState
     {
         return $this->forehold;
     }
 
-    public function getLeftFrontDoorLock(): ?int
+    public function getLeftFrontDoorLock(): LockState
     {
         return $this->leftFrontDoorLock;
     }
 
-    public function getRightFrontDoorLock(): ?int
+    public function getRightFrontDoorLock(): LockState
     {
         return $this->rightFrontDoorLock;
     }
 
-    public function getLeftRearDoorLock(): ?int
+    public function getLeftRearDoorLock(): LockState
     {
         return $this->leftRearDoorLock;
     }
 
-    public function getRightRearDoorLock(): ?int
+    public function getRightRearDoorLock(): LockState
     {
         return $this->rightRearDoorLock;
     }
 
-    public function getSlidingDoorLock(): ?int
+    public function getSlidingDoorLock(): LockState
     {
         return $this->slidingDoorLock;
     }
 
-    public function getLeftFrontWindow(): ?int
+    public function getLeftFrontWindow(): WindowState
     {
         return $this->leftFrontWindow;
     }
 
-    public function getRightFrontWindow(): ?int
+    public function getRightFrontWindow(): WindowState
     {
         return $this->rightFrontWindow;
     }
 
-    public function getLeftRearWindow(): ?int
+    public function getLeftRearWindow(): WindowState
     {
         return $this->leftRearWindow;
     }
 
-    public function getRightRearWindow(): ?int
+    public function getRightRearWindow(): WindowState
     {
         return $this->rightRearWindow;
     }
 
-    public function getSkylight(): ?int
+    public function getSkylight(): WindowState
     {
         return $this->skylight;
     }
@@ -761,7 +869,7 @@ class VehicleRealtimeData extends BaseModel
         return $this->rightRearTireStatus;
     }
 
-    public function getTirePressUnit(): ?int
+    public function getTirePressUnit(): TirePressureUnit
     {
         return $this->tirePressUnit;
     }
@@ -804,6 +912,11 @@ class VehicleRealtimeData extends BaseModel
     public function getRecent50kmEnergy(): ?string
     {
         return $this->recent50kmEnergy;
+    }
+
+    public function getEnergyConsumption(): ?float
+    {
+        return $this->energyConsumption;
     }
 
     public function getOilEndurance(): ?float

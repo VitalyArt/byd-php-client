@@ -6,7 +6,6 @@ namespace Byd\ApiClient\Crypto;
 
 use Byd\ApiClient\Exceptions\BangcleException;
 
-use function count;
 use function ord;
 use function strlen;
 
@@ -21,9 +20,6 @@ use function strlen;
  */
 class BangcleBlock
 {
-    // Define constants
-    private const ZERO_IV = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-
     /**
      * Transpose 4x4 block into working state layout (col*8+row).
      */
@@ -73,7 +69,7 @@ class BangcleBlock
                     $idx = $byteVal + ($i + ($l_var21 + $u_var7) * 4) * 256;
 
                     // Extract 4 bytes as little-endian integer from inv_round table
-                    $value = self::unpackLittleEndianInt(substr($tables['inv_round'], $idx * 4, 4));
+                    $value = self::unpackLittleEndianInt(substr((string) $tables['inv_round'], $idx * 4, 4));
                     self::packLittleEndianInt($value, $temp64, $base + $j * 4);
                 }
 
@@ -97,9 +93,9 @@ class BangcleBlock
                     $i_var25 = $i_var15;
 
                     for ($l_var16 = 0; $l_var16 < 3; $l_var16++) {
-                        if ($l_var16 == 0) {
+                        if ($l_var16 === 0) {
                             $b_var3_inner = $local_f0;
-                        } elseif ($l_var16 == 1) {
+                        } elseif ($l_var16 === 1) {
                             $b_var3_inner = $local_f1;
                         } else {
                             $b_var3_inner = $local_f2;
@@ -126,7 +122,7 @@ class BangcleBlock
             }
         }
 
-        if ($param3 == 1) {
+        if ($param3 === 1) {
             $tmp32 = $state;
             $u_var8 = 1;
             $u_var10 = 3;
@@ -160,7 +156,7 @@ class BangcleBlock
             }
         }
 
-        return implode('', array_map('chr', $output));
+        return implode('', array_map(chr(...), $output));
     }
 
     /**
@@ -200,7 +196,7 @@ class BangcleBlock
                     $idx = $byteVal + ($i + ($l_var21 + $u_var8) * 4) * 256;
 
                     // Extract 4 bytes as little-endian integer from round table
-                    $value = self::unpackLittleEndianInt(substr($tables['round'], $idx * 4, 4));
+                    $value = self::unpackLittleEndianInt(substr((string) $tables['round'], $idx * 4, 4));
                     self::packLittleEndianInt($value, $temp64, $base + $j * 4);
                 }
 
@@ -224,9 +220,9 @@ class BangcleBlock
                     $i_var25 = $i_var16;
 
                     for ($l_var17 = 0; $l_var17 < 3; $l_var17++) {
-                        if ($l_var17 == 0) {
+                        if ($l_var17 === 0) {
                             $b_var4_inner = $local_f0;
-                        } elseif ($l_var17 == 1) {
+                        } elseif ($l_var17 === 1) {
                             $b_var4_inner = $local_f1;
                         } else {
                             $b_var4_inner = $local_f2;
@@ -253,7 +249,7 @@ class BangcleBlock
             }
         }
 
-        if ($param3 == 10) {
+        if ($param3 === 10) {
             $tmp32 = $state;
             $u_var13 = 3;
             $u_var9 = 2;
@@ -281,17 +277,7 @@ class BangcleBlock
             }
         }
 
-        return implode('', array_map('chr', $output));
-    }
-
-    /**
-     * XOR source into target in-place.
-     */
-    private static function xorInto(array &$target, array $source): void
-    {
-        for ($i = 0; $i < count($target); $i++) {
-            $target[$i] ^= $source[$i];
-        }
+        return implode('', array_map(chr(...), $output));
     }
 
     /**
@@ -311,6 +297,7 @@ class BangcleBlock
         if ($dataLength % 16 !== 0) {
             throw new BangcleException("Ciphertext length {$dataLength} is not a multiple of 16");
         }
+
         if ($ivLength !== 16) {
             throw new BangcleException("IV must be 16 bytes, got {$ivLength}");
         }
@@ -329,7 +316,7 @@ class BangcleBlock
                 $decryptedBytes[$i] ^= $prevBytes[$i];
             }
 
-            $result .= implode('', array_map('chr', $decryptedBytes));
+            $result .= implode('', array_map(chr(...), $decryptedBytes));
             $prev = $block;
         }
 
@@ -353,6 +340,7 @@ class BangcleBlock
         if ($dataLength % 16 !== 0) {
             throw new BangcleException("Plaintext length {$dataLength} is not a multiple of 16");
         }
+
         if ($ivLength !== 16) {
             throw new BangcleException("IV must be 16 bytes, got {$ivLength}");
         }
@@ -370,7 +358,7 @@ class BangcleBlock
                 $blockBytes[$i] ^= $prevBytes[$i];
             }
 
-            $block = implode('', array_map('chr', $blockBytes));
+            $block = implode('', array_map(chr(...), $blockBytes));
             $encrypted = self::encryptBlockAuth($tables, $block, 10);
             $result .= $encrypted;
             $prev = $encrypted;

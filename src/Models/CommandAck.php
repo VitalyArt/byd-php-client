@@ -13,8 +13,11 @@ use DateTimeInterface;
 class CommandAck extends BaseModel
 {
     private string $resultCode = '';
+
     private string $resultMsg = '';
+
     private ?string $serialNumber = null;
+
     private ?DateTimeInterface $timestamp = null;
 
     /**

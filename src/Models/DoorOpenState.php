@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Models;
 
-/**
- * Door/trunk open/closed state.
- */
-class DoorOpenState extends AbstractEnum
+enum DoorOpenState: int
 {
-    public const UNKNOWN = -1;
-    public const CLOSED = 0;
-    public const OPEN = 1;
+    case UNKNOWN = -1;
+    case CLOSED = 0;
+    case OPEN = 1;
 }

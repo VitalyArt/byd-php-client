@@ -12,9 +12,6 @@ use function is_array;
 
 class RealtimeApi
 {
-    private const TRIGGER_ENDPOINT = '/vehicleInfo/vehicle/vehicleRealTimeRequest';
-    private const POLL_ENDPOINT = '/vehicleInfo/vehicle/vehicleRealTimeResult';
-
     /**
      * Fetch a single realtime endpoint, returning [vehicle_info_array, next_serial].
      *

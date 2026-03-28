@@ -13,14 +13,6 @@ class BatteryHeatParams extends BaseModel implements ControlParams
     /**
      * @param array<string, mixed> $data
      */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
     protected function populate(array $data): void
     {
         $this->enabled = isset($data['enabled']) ? (bool) $data['enabled'] : null;

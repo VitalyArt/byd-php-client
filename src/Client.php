@@ -48,17 +48,16 @@ use function strlen;
  */
 class Client
 {
-    private BydConfig $config;
     private ?HttpClient $httpClient = null;
+
     private ?BangcleCodec $codec = null;
+
     private ?SecureTransport $transport = null;
-    private ?LoggerInterface $logger = null;
+
     private ?Session $session = null;
 
-    public function __construct(BydConfig $config, ?LoggerInterface $logger = null)
+    public function __construct(private BydConfig $config, private ?LoggerInterface $logger = new NullLogger())
     {
-        $this->config = $config;
-        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -71,19 +70,19 @@ class Client
      */
     public function init(): void
     {
-        if ($this->httpClient === null) {
+        if (!$this->httpClient instanceof HttpClient) {
             $this->httpClient = new HttpClient([
                 'cookies' => true,
             ]);
         }
 
-        if ($this->codec === null) {
+        if (!$this->codec instanceof BangcleCodec) {
             // Try to find the tables file in the package data directory
             $defaultPath = __DIR__ . '/../data/bangcle_tables.bin';
             $this->codec = new BangcleCodec(file_exists($defaultPath) ? $defaultPath : null);
         }
 
-        if ($this->transport === null) {
+        if (!$this->transport instanceof SecureTransport) {
             $this->transport = new SecureTransport(
                 $this->config,
                 $this->codec,
@@ -105,14 +104,14 @@ class Client
     public function login(): void
     {
         // Ensure transport is initialized
-        if ($this->transport === null) {
+        if (!$this->transport instanceof SecureTransport) {
             $this->init();
         }
 
         $nowMs = (int) (microtime(true) * 1000);
         $outer = Login::buildLoginRequest($this->config, $nowMs);
 
-        if ($this->transport === null) {
+        if (!$this->transport instanceof SecureTransport) {
             throw new BydException('Transport not initialized');
         }
 
@@ -135,13 +134,13 @@ class Client
      */
     public function ensureSession(): Session
     {
-        if ($this->session !== null && !$this->session->isExpired()) {
+        if ($this->session instanceof Session && !$this->session->isExpired()) {
             return $this->session;
         }
 
         $this->login();
 
-        if ($this->session === null) {
+        if (!$this->session instanceof Session) {
             throw new BydException('Failed to create session');
         }
 
@@ -223,10 +222,10 @@ class Client
                     $mergedLatest = $latest;
                 }
 
-                if (is_array($latest) && VehicleRealtimeData::isReadyRaw($latest)) {
+                if (VehicleRealtimeData::isReadyRaw($latest)) {
                     break;
                 }
-            } catch (BydException $e) {
+            } catch (BydException) {
                 // Continue polling on API errors
             }
         }
@@ -287,10 +286,10 @@ class Client
                     $mergedLatest = $latest;
                 }
 
-                if (is_array($latest) && GpsInfo::isGpsInfoReady($latest)) {
+                if (GpsInfo::isGpsInfoReady($latest)) {
                     break;
                 }
-            } catch (BydException $e) {
+            } catch (BydException) {
                 // Continue polling on API errors
             }
         }
@@ -583,7 +582,7 @@ class Client
      */
     private function requireTransport(): SecureTransport
     {
-        if ($this->transport === null) {
+        if (!$this->transport instanceof SecureTransport) {
             throw new BydException('Client not initialized. Call init() first.');
         }
 

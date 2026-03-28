@@ -7,16 +7,10 @@ namespace Byd\ApiClient\Models;
 class VerifyControlPasswordResponse extends BaseModel
 {
     private string $vin;
-    private ?bool $success = null;
-    private ?string $message = null;
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-    }
+    private ?bool $success = null;
+
+    private ?string $message = null;
 
     /**
      * @param array<string, mixed> $data

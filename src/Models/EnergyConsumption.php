@@ -13,20 +13,35 @@ use DateTimeInterface;
 class EnergyConsumption extends BaseModel
 {
     private ?float $totalMileage = null;
+
     private ?float $totalEnergy = null;
+
     private ?float $recentAverageEnergy = null;
+
     private ?float $recent50kmEnergy = null;
+
     private ?float $drivingEnergy = null;
+
     private ?float $chargingEnergy = null;
+
     private ?float $electricMileage = null;
+
     private ?float $fuelMileage = null;
+
     private ?float $totalMileageOfElectric = null;
+
     private ?float $totalMileageOfFuel = null;
+
     private ?float $totalEnergyOfElectric = null;
+
     private ?float $totalEnergyOfFuel = null;
+
     private ?float $co2Emission = null;
+
     private ?float $co2Saved = null;
+
     private ?DateTimeInterface $startTime = null;
+
     private ?DateTimeInterface $endTime = null;
 
     /**

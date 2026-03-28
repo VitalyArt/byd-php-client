@@ -10,7 +10,9 @@ namespace Byd\ApiClient\Models;
 class AuthToken extends BaseModel
 {
     private string $userId;
+
     private string $signToken;
+
     private string $encryToken;
 
     /**

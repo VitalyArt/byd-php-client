@@ -13,15 +13,12 @@ use function is_string;
 
 class GpsApi
 {
-    private const TRIGGER_ENDPOINT = '/control/getGpsInfo';
-    private const POLL_ENDPOINT = '/control/getGpsInfoResult';
-
     /**
      * Check if GPS data has meaningful content.
      */
     public static function isGpsInfoReady(array $gpsInfo): bool
     {
-        return !empty($gpsInfo) && array_keys($gpsInfo) !== ['requestSerial'];
+        return $gpsInfo !== [] && array_keys($gpsInfo) !== ['requestSerial'];
     }
 
     /**

@@ -36,6 +36,9 @@ class HvacApi
             $vin
         );
 
-        return new HvacStatus(is_array($decoded) ? $decoded : []);
+        // The API wraps HVAC fields under a 'statusNow' key.
+        $hvacData = is_array($decoded) ? ($decoded['statusNow'] ?? $decoded) : [];
+
+        return new HvacStatus($hvacData);
     }
 }

@@ -20,12 +20,16 @@ use function is_string;
 class ControlApi
 {
     private const VERIFY_CONTROL_PASSWORD_ENDPOINT = '/vehicle/vehicleswitch/verifyControlPassword';
+
     private const REMOTE_CONTROL_ENDPOINT = '/control/remoteControl';
+
     private const REMOTE_CONTROL_RESULT_ENDPOINT = '/control/remoteControlResult';
 
-    private const CONTROL_PASSWORD_ERROR_CODES = ['5005', '5006'];
-    private const REMOTE_CONTROL_SERVICE_ERROR_CODES = ['1009'];
-    private const REMOTE_CONTROL_GENERIC_ERROR_CODES = ['1001'];
+    private const CONTROL_PASSWORD_ERROR_CODES = [5005, 5006];
+
+    private const REMOTE_CONTROL_SERVICE_ERROR_CODES = [1009];
+
+    private const REMOTE_CONTROL_GENERIC_ERROR_CODES = [1001];
 
     /**
      * Build the inner payload for remote control endpoints.
@@ -109,7 +113,7 @@ class ControlApi
      */
     private static function isRemoteControlReady(array $data): bool
     {
-        if (empty($data)) {
+        if ($data === []) {
             return false;
         }
 
@@ -180,9 +184,11 @@ class ControlApi
             if (in_array($e->getCode(), self::CONTROL_PASSWORD_ERROR_CODES, true)) {
                 throw new BydControlPasswordException($e->getMessage(), $e->getCode(), $e->getEndpoint(), $e);
             }
+
             if ($isRemote && in_array($e->getCode(), self::REMOTE_CONTROL_SERVICE_ERROR_CODES, true)) {
                 throw new BydRemoteControlException($e->getMessage(), $e->getCode(), $e->getEndpoint(), $e);
             }
+
             if ($isRemote && in_array($e->getCode(), self::REMOTE_CONTROL_GENERIC_ERROR_CODES, true)) {
                 throw new BydRemoteControlException($e->getMessage(), $e->getCode(), $e->getEndpoint(), $e);
             }
@@ -235,7 +241,7 @@ class ControlApi
 
                 throw new BydRemoteControlException(
                     "Remote control {$commandType} failed: {$msg}",
-                    '2',
+                    2,
                     self::REMOTE_CONTROL_ENDPOINT
                 );
             }
@@ -270,18 +276,18 @@ class ControlApi
                 if (is_array($latest) && self::isRemoteControlReady($latest)) {
                     break;
                 }
-            } catch (BydApiException $e) {
+            } catch (BydApiException) {
                 // Continue polling on API errors
             }
         }
 
-        $parsed = self::parseRemoteControlResultData(is_array($latest) ? $latest : []);
+        $parsed = self::parseRemoteControlResultData($latest);
         if ($parsed->getControlState() === 2) {
-            $msg = is_array($latest) ? ($latest['message'] ?? $latest['msg'] ?? 'controlState=2') : 'controlState=2';
+            $msg = $latest['message'] ?? $latest['msg'] ?? 'controlState=2';
 
             throw new BydRemoteControlException(
                 "Remote control {$commandType} failed: {$msg}",
-                '2',
+                2,
                 self::REMOTE_CONTROL_RESULT_ENDPOINT
             );
         }

@@ -10,10 +10,15 @@ namespace Byd\ApiClient\Models\Control;
 class ClimateStartParams implements ControlParams
 {
     private ?int $temperature = null;
+
     private bool $acOn = false;
+
     private bool $heating = false;
+
     private bool $defrost = false;
+
     private bool $frontDefrost = false;
+
     private bool $rearDefrost = false;
 
     /**

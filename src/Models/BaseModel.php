@@ -10,17 +10,11 @@ namespace Byd\ApiClient\Models;
 class BaseModel
 {
     /**
-     * @var array<string, mixed> Original API response dict.
+     * @param array<string, mixed> $raw
      */
-    protected array $raw = [];
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function __construct(array $data = [])
+    public function __construct(protected array $raw = [])
     {
-        $this->raw = $data;
-        $this->populate($data);
+        $this->populate($this->raw);
     }
 
     /**
@@ -60,7 +54,7 @@ class BaseModel
      */
     protected function camelToSnake(string $str): string
     {
-        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $str));
+        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $str));
     }
 
     /**

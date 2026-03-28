@@ -10,13 +10,11 @@ namespace Byd\ApiClient\Exceptions;
 class BydAuthenticationException extends BydException
 {
     protected $code = '';
-    private string $endpoint = '';
 
-    public function __construct(string $message, string $code = '', string $endpoint = '')
+    public function __construct(string $message, string $code = '', private string $endpoint = '')
     {
         parent::__construct($message);
         $this->code = $code;
-        $this->endpoint = $endpoint;
     }
 
     public function getEndpoint(): string

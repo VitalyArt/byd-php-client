@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Exceptions;
 
-use Exception;
 use Throwable;
 
-class BydApiException extends Exception
+class BydApiException extends BydException
 {
-    private string $endpoint = '';
-
-    public function __construct(string $message, int $code = 0, string $endpoint = '', ?Throwable $previous = null)
+    public function __construct(string $message, int $code = 0, private string $endpoint = '', ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
-        $this->endpoint = $endpoint;
     }
 
     public function getEndpoint(): string

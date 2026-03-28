@@ -13,21 +13,20 @@ use DateTimeInterface;
 class GpsInfo extends BaseModel
 {
     private ?float $latitude = null;
-    private ?float $longitude = null;
-    private ?float $altitude = null;
-    private ?float $speed = null;
-    private ?float $heading = null;
-    private ?float $direction = null;
-    private ?DateTimeInterface $timestamp = null;
-    private ?string $positionType = null;
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-    }
+    private ?float $longitude = null;
+
+    private ?float $altitude = null;
+
+    private ?float $speed = null;
+
+    private ?float $heading = null;
+
+    private ?float $direction = null;
+
+    private ?DateTimeInterface $timestamp = null;
+
+    private ?string $positionType = null;
 
     /**
      * @param array<string, mixed> $data
@@ -70,7 +69,7 @@ class GpsInfo extends BaseModel
      */
     public static function isGpsInfoReady(array $gpsInfo): bool
     {
-        return !empty($gpsInfo) && array_keys($gpsInfo) !== ['requestSerial'];
+        return $gpsInfo !== [] && array_keys($gpsInfo) !== ['requestSerial'];
     }
 
     // Getters

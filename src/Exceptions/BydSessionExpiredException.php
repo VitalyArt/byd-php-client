@@ -6,5 +6,4 @@ namespace Byd\ApiClient\Exceptions;
 
 class BydSessionExpiredException extends BydApiException
 {
-
 }
