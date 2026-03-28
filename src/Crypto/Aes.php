@@ -77,7 +77,7 @@ class Aes
 
             return strtoupper(bin2hex($cipher));
         } catch (Exception $e) {
-            throw new BangcleException('AES encryption failed: ' . $e->getMessage());
+            throw new BangcleException('AES encryption failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -98,7 +98,7 @@ class Aes
             }
 
             try {
-                json_decode($decrypted, true, JSON_THROW_ON_ERROR);
+                json_decode($decrypted, true, 512, JSON_THROW_ON_ERROR);
 
                 return $decrypted;
             } catch (JsonException) {
@@ -108,7 +108,7 @@ class Aes
         } catch (BangcleException $e) {
             throw $e;
         } catch (Exception $e) {
-            throw new BangcleException('AES decryption failed: ' . $e->getMessage());
+            throw new BangcleException('AES decryption failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 

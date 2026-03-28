@@ -23,21 +23,8 @@ use function sprintf;
  */
 class SecureTransport implements TransportInterface
 {
-    private BydConfig $config;
-    private BangcleCodec $codec;
-    private HttpClientInterface $httpClient;
-    private LoggerInterface $logger;
-
-    public function __construct(
-        BydConfig $config,
-        BangcleCodec $codec,
-        HttpClientInterface $httpClient,
-        ?LoggerInterface $logger = null
-    ) {
-        $this->config = $config;
-        $this->codec = $codec;
-        $this->httpClient = $httpClient;
-        $this->logger = $logger ?? new NullLogger();
+    public function __construct(private BydConfig $config, private BangcleCodec $codec, private HttpClientInterface $httpClient, private ?LoggerInterface $logger = new NullLogger())
+    {
     }
 
     /**

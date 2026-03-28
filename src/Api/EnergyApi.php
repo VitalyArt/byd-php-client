@@ -25,6 +25,8 @@ class EnergyApi
         string $vin
     ): EnergyConsumption {
         $inner = Common::buildInnerBase($config, null, $vin);
+        $inner['energyType'] = '0';
+        $inner['tboxVersion'] = $config->getTboxVersion();
 
         $decoded = TokenJson::postTokenJson(
             self::ENDPOINT,

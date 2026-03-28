@@ -14,16 +14,23 @@ use function strlen;
  */
 class BangcleCodec
 {
-    private ?string $tablesPath;
     private ?array $tables = null;
 
     // Binary table file format constants
     private const MAGIC = 'BGTB';
+
     private const VERSION = 1;
+
     private const TABLE_COUNT = 8;
-    private const HEADER_SIZE = 4 + 2 + 2; // magic + version + count
-    private const INDEX_ENTRY_SIZE = 4 + 4; // offset + length
+
+    private const HEADER_SIZE = 4 + 2 + 2;
+
+    // magic + version + count
+    private const INDEX_ENTRY_SIZE = 4 + 4;
+
+    // offset + length
     private const INDEX_SIZE = self::TABLE_COUNT * self::INDEX_ENTRY_SIZE;
+
     private const ZERO_IV = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
 
     // Expected sizes for each table, in order.
@@ -38,9 +45,8 @@ class BangcleCodec
         ['perm_encrypt', 8],
     ];
 
-    public function __construct(?string $tablesPath = null)
+    public function __construct(private ?string $tablesPath = null)
     {
-        $this->tablesPath = $tablesPath;
     }
 
     /**
@@ -58,6 +64,7 @@ class BangcleCodec
             if (!file_exists($this->tablesPath)) {
                 throw new BangcleException('Table file not found: ' . $this->tablesPath);
             }
+
             $raw = file_get_contents($this->tablesPath);
             if ($raw === false) {
                 throw new BangcleException('Failed to read table file: ' . $this->tablesPath);
@@ -127,6 +134,7 @@ class BangcleCodec
             if ($expectedLen !== $expectedLength) {
                 throw new BangcleException(sprintf('Table %s: expected %d bytes, got %d', $expectedName, $expectedLength, $expectedLen));
             }
+
             if ($tableOffset + $expectedLen > $dataLength) {
                 throw new BangcleException(sprintf('Table %s: data extends beyond file', $expectedName));
             }

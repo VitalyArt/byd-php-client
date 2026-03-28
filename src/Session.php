@@ -11,25 +11,19 @@ use Byd\ApiClient\Crypto\Hashing;
  */
 class Session
 {
-    private string $userId;
-    private string $signToken;
-    private string $encryToken;
     private float $createdAt;
-    private float $ttl;
+
     private ?string $contentKeyCache = null;
+
     private ?string $signKeyCache = null;
 
     public function __construct(
-        string $userId,
-        string $signToken,
-        string $encryToken,
-        float $ttl = 43200.0, // 12 hours default
+        private string $userId,
+        private string $signToken,
+        private string $encryToken,
+        private float $ttl = 43200.0, // 12 hours default
         ?float $createdAt = null
     ) {
-        $this->userId = $userId;
-        $this->signToken = $signToken;
-        $this->encryToken = $encryToken;
-        $this->ttl = $ttl;
         $this->createdAt = $createdAt ?? microtime(true);
     }
 

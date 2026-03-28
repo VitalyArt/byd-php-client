@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Models;
 
-/**
- * Steering wheel heating level.
- */
-class StearingWheelHeat extends AbstractEnum
+enum StearingWheelHeat: int
 {
-    public const ON = -1; // makes no sense, but tested live.
-    public const OFF = 1;
+    case ON = -1;  // confirmed live: -1 means ON
+    case OFF = 1;
 
     /**
-     * Return the value to send in a seat-climate command.
-     *
+     * Return the command level value for seat-climate commands.
      * Command scale: 1 = on, 3 = off.
      */
-    public static function toCommandLevel(int $value): int
+    public function toCommandLevel(): int
     {
-        return $value === self::ON ? 1 : 3;
+        return $this === self::ON ? 1 : 3;
     }
 }

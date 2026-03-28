@@ -53,11 +53,7 @@ class Hashing
             $byteVal = ord($digest[$i]);
             $hexStr = sprintf('%02x', $byteVal);
 
-            if ($i % 2 == 0) {
-                $mixedChars[] = strtoupper($hexStr);
-            } else {
-                $mixedChars[] = strtolower($hexStr);
-            }
+            $mixedChars[] = $i % 2 === 0 ? strtoupper($hexStr) : strtolower($hexStr);
         }
 
         $mixed = implode('', $mixedChars);
@@ -68,6 +64,7 @@ class Hashing
             if ($ch === '0' && $j % 2 === 0) {
                 continue;
             }
+
             $filtered .= $ch;
         }
 

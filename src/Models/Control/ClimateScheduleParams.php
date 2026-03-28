@@ -9,21 +9,20 @@ use Byd\ApiClient\Models\BaseModel;
 class ClimateScheduleParams extends BaseModel implements ControlParams
 {
     private ?int $startHour = null;
-    private ?int $startMinute = null;
-    private ?int $endHour = null;
-    private ?int $endMinute = null;
-    private ?int $temperature = null;
-    private ?int $seatHeating = null;
-    private ?int $seatVentilation = null;
-    private ?bool $steeringWheelHeating = null;
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-    }
+    private ?int $startMinute = null;
+
+    private ?int $endHour = null;
+
+    private ?int $endMinute = null;
+
+    private ?int $temperature = null;
+
+    private ?int $seatHeating = null;
+
+    private ?int $seatVentilation = null;
+
+    private ?bool $steeringWheelHeating = null;
 
     /**
      * @param array<string, mixed> $data

@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Models;
 
-/**
- * Air circulation mode.
- */
-class AirCirculationMode extends AbstractEnum
+enum AirCirculationMode: int
 {
-    public const UNKNOWN = -1;
-    public const UNAVAILABLE = 0;
-    public const EXTERNAL = 1;
-    public const INTERNAL = 2;
+    case UNKNOWN = -1;
+    case UNAVAILABLE = 0;
+    case EXTERNAL = 1;
+    case INTERNAL = 2;
 }

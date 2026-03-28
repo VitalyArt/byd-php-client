@@ -111,7 +111,6 @@ class Login
      * Parse login response and extract the auth token.
      *
      * @param array<string, mixed> $outerResponse
-     * @return AuthToken
      *
      * @throws BydAuthenticationException
      */

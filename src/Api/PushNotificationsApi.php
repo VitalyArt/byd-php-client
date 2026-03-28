@@ -15,6 +15,7 @@ use function is_array;
 class PushNotificationsApi
 {
     private const GET_ENDPOINT = '/app/push/getPushSwitchState';
+
     private const SET_ENDPOINT = '/app/push/setPushSwitchState';
 
     /**

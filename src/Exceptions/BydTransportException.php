@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Exceptions;
 
+use Throwable;
+
 /**
  * Exception related to HTTP transport.
  */
 class BydTransportException extends BydException
 {
     private int $statusCode;
-    private string $endpoint;
 
-    public function __construct(string $message, int $statusCode, string $endpoint)
+    public function __construct(string $message, int $statusCode, private string $endpoint, ?Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, $statusCode, $previous);
         $this->statusCode = $statusCode;
-        $this->endpoint = $endpoint;
     }
 
     public function getStatusCode(): int

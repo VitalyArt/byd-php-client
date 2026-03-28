@@ -94,37 +94,44 @@ class TokenJson
         $outer['checkcode'] = Hashing::computeCheckcode($outer);
 
         // Send request
-        try {
-            $decoded = $transport->postSecure($endpoint, $outer);
-        } catch (BydApiException $e) {
-            // Re-throw certain codes as specialized exceptions
-            if ($e->getCode() === '1017') {
-                throw new BydSessionExpiredException($e->getMessage(), $e->getCode(), $e->getEndpoint(), $e);
+        $decoded = $transport->postSecure($endpoint, $outer);
+
+        // Check outer response code before attempting decryption
+        $outerCode = (string) ($decoded['code'] ?? '0');
+        if ($outerCode !== '0') {
+            $errorCode = (int) $outerCode;
+            $errorMessage = (string) ($decoded['message'] ?? $decoded['msg'] ?? ('API error ' . $outerCode));
+
+            if ($errorCode === 1017) {
+                throw new BydSessionExpiredException($errorMessage, $errorCode, $endpoint);
             }
 
-            if (in_array($e->getCode(), self::ENDPOINT_NOT_SUPPORTED_CODES, true)) {
-                throw new BydVehicleNotSupportedException($e->getMessage(), $e->getCode(), $e->getEndpoint(), $e);
+            if (in_array($errorCode, self::ENDPOINT_NOT_SUPPORTED_CODES, true)) {
+                throw new BydVehicleNotSupportedException($errorMessage, $errorCode, $endpoint);
             }
 
-            if (in_array($e->getCode(), $extraErrorCodes, true)) {
-                throw $e; // Let caller handle it
+            if (in_array($errorCode, $extraErrorCodes, true)) {
+                throw new BydApiException($errorMessage, $errorCode, $endpoint);
             }
 
-            throw $e;
+            throw new BydApiException($errorMessage, $errorCode, $endpoint);
         }
 
-        // Extract inner response payload
+        // Extract and decrypt inner response payload
         $payload = $decoded['respondData'] ?? null;
 
-        $plaintext = Aes::aesDecryptUtf8($payload, $contentKey);
+        if ($payload === null) {
+            return null;
+        }
+
+        $plaintext = Aes::aesDecryptUtf8((string) $payload, $contentKey);
         $inner = json_decode($plaintext, true);
 
-        // Check for explicit error code in response
-        if (is_array($payload) && isset($payload['code']) && $payload['code'] !== '0') {
-            $errorCode = (int) $payload['code'];
-            $errorMessage = $payload['message'] ?? $payload['msg'] ?? ('API error ' . $errorCode);
+        // Check for error code in decrypted inner response
+        if (is_array($inner) && isset($inner['code']) && (string) $inner['code'] !== '0') {
+            $errorCode = (int) $inner['code'];
+            $errorMessage = (string) ($inner['message'] ?? $inner['msg'] ?? ('API error ' . $errorCode));
 
-            // Specialized error handling
             if ($errorCode === 1017) {
                 throw new BydSessionExpiredException($errorMessage, $errorCode, $endpoint);
             }

@@ -12,30 +12,54 @@ use DateTimeInterface;
  */
 class ChargingStatus extends BaseModel
 {
-    private int $chargingState = ChargingState::UNKNOWN;
+    private ChargingState $chargingState = ChargingState::UNKNOWN;
+
     private ?float $chargerPower = null;
+
     private ?float $chargerVoltage = null;
+
     private ?float $chargerCurrent = null;
+
     private ?float $batteryCapacity = null;
+
     private ?float $batteryVoltage = null;
+
     private ?float $batteryCurrent = null;
+
     private ?float $batteryTemperature = null;
+
     private ?float $batterySOC = null;
+
     private ?float $chargingPower = null;
+
     private ?int $chargingTime = null;
+
     private ?int $remainingTime = null;
+
     private ?float $mileageOfCharge = null;
+
     private ?float $mileageOfDay = null;
+
     private ?float $mileageOfWeek = null;
+
     private ?float $mileageOfMonth = null;
+
     private ?DateTimeInterface $startTime = null;
+
     private ?DateTimeInterface $endTime = null;
+
     private ?string $chargingPileName = null;
+
     private ?string $chargingPileSN = null;
+
     private ?int $chargingType = null;
+
     private ?float $chargingCost = null;
+
     private ?float $electricPrice = null;
+
     private ?float $serviceFee = null;
+
     private ?float $totalFee = null;
 
     /**
@@ -43,7 +67,7 @@ class ChargingStatus extends BaseModel
      */
     protected function populate(array $data): void
     {
-        $this->chargingState = (int) ($data['chargingState'] ?? ChargingState::UNKNOWN);
+        $this->chargingState = ChargingState::tryFrom((int) ($data['chargingState'] ?? -1)) ?? ChargingState::UNKNOWN;
         $this->chargerPower = isset($data['chargerPower']) ? (float) $data['chargerPower'] : null;
         $this->chargerVoltage = isset($data['chargerVoltage']) ? (float) $data['chargerVoltage'] : null;
         $this->chargerCurrent = isset($data['chargerCurrent']) ? (float) $data['chargerCurrent'] : null;
@@ -93,7 +117,7 @@ class ChargingStatus extends BaseModel
     }
 
     // Getters
-    public function getChargingState(): int
+    public function getChargingState(): ChargingState
     {
         return $this->chargingState;
     }

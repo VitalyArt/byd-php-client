@@ -13,22 +13,22 @@ use DateTimeInterface;
 class RemoteControlResult extends BaseModel
 {
     private string $resultCode = '';
-    private string $resultMsg = '';
-    private ?string $serialNumber = null;
-    private ?DateTimeInterface $timestamp = null;
-    private ?string $commandType = null;
-    private ?string $vin = null;
-    private ?string $uuid = null;
-    private array $responseData = [];
-    private ?int $controlState = null;
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-    }
+    private string $resultMsg = '';
+
+    private ?string $serialNumber = null;
+
+    private ?DateTimeInterface $timestamp = null;
+
+    private ?string $commandType = null;
+
+    private ?string $vin = null;
+
+    private ?string $uuid = null;
+
+    private array $responseData = [];
+
+    private ?int $controlState = null;
 
     /**
      * @param array<string, mixed> $data

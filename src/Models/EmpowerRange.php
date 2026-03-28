@@ -12,7 +12,9 @@ use function is_array;
 class EmpowerRange extends BaseModel
 {
     private string $code = '';
+
     private string $name = '';
+
     /**
      * @var EmpowerRange[]
      */
