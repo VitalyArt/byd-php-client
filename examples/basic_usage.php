@@ -98,6 +98,10 @@ try {
         echo "--- Energy Consumption ---\n";
         try {
             $energy = $client->getEnergyConsumption($vin);
+            echo "Total mileage: " . ($energy->getTotalMileage() ?? 'n/a') . ' ' . ($energy->getMileageUnit() ?? 'km') . "\n";
+            echo "Lifetime average: " . ($energy->getCumulativeAverageEvConsumption() ?? 'n/a') . ' ' . ($energy->getCumulativeEvUnit() ?? 'kWh/100 km') . "\n";
+            echo "Last 50 km average: " . ($energy->getLast50kmAverageEvConsumption() ?? 'n/a') . ' ' . ($energy->getLast50kmEvUnit() ?? 'kWh/100 km') . "\n";
+            echo "Last 50 km energy: " . ($energy->getLast50kmEvConsumption() ?? 'n/a') . ' ' . ($energy->getLast50kmEvValueUnit() ?? 'kWh') . "\n";
         } catch (BydException $e) {
             echo "Energy error: " . $e->getMessage() . "\n";
         }

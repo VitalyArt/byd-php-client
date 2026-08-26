@@ -25,7 +25,8 @@ class PushNotificationState extends BaseModel
      */
     protected function populate(array $data): void
     {
-        $this->enabled = (bool) ($data['enabled'] ?? false);
+        $enabled = $data['enabled'] ?? $data['pushSwitch'] ?? false;
+        $this->enabled = $enabled === true || $enabled === 1 || $enabled === '1';
         $this->deviceId = isset($data['deviceId']) ? (string) $data['deviceId'] : null;
         $this->deviceToken = isset($data['deviceToken']) ? (string) $data['deviceToken'] : null;
 

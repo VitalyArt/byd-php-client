@@ -22,11 +22,16 @@ class EnergyApi
         BydConfig $config,
         Session $session,
         TransportInterface $transport,
-        string $vin
+        string $vin,
+        string $powerType = '0',
+        ?string $autoModelNameOut = null
     ): EnergyConsumption {
         $inner = Common::buildInnerBase($config, null, $vin);
-        $inner['energyType'] = '0';
-        $inner['tboxVersion'] = $config->getTboxVersion();
+        $inner['powerType'] = $powerType;
+        $inner['requestType'] = 0;
+        if ($autoModelNameOut !== null && $autoModelNameOut !== '') {
+            $inner['autoModelNameOut'] = $autoModelNameOut;
+        }
 
         $decoded = TokenJson::postTokenJson(
             self::ENDPOINT,

@@ -30,6 +30,8 @@ class RemoteControlResult extends BaseModel
 
     private ?int $controlState = null;
 
+    private ?int $res = null;
+
     /**
      * @param array<string, mixed> $data
      */
@@ -41,7 +43,12 @@ class RemoteControlResult extends BaseModel
         $this->commandType = isset($data['commandType']) ? (string) $data['commandType'] : null;
         $this->vin = isset($data['vin']) ? (string) $data['vin'] : null;
         $this->uuid = isset($data['uuid']) ? (string) $data['uuid'] : null;
-        $this->controlState = isset($data['controlState']) ? (int) $data['controlState'] : null;
+        $this->res = isset($data['res']) ? (int) $data['res'] : null;
+        $this->controlState = isset($data['controlState']) ? (int) $data['controlState'] : match ($this->res) {
+            1 => 0,
+            2 => 1,
+            default => $this->res !== null ? 2 : null,
+        };
 
         if (isset($data['timestamp'])) {
             $this->timestamp = $this->parseTimestamp($data['timestamp']);
@@ -114,8 +121,13 @@ class RemoteControlResult extends BaseModel
         return $this->controlState;
     }
 
+    public function getRes(): ?int
+    {
+        return $this->res;
+    }
+
     public function isSuccess(): bool
     {
-        return $this->resultCode === 'success' || $this->resultCode === '0';
+        return $this->controlState === 1 || $this->resultCode === 'success' || $this->resultCode === '0';
     }
 }

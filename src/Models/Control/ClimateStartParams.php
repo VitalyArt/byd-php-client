@@ -9,17 +9,21 @@ namespace Byd\ApiClient\Models\Control;
  */
 class ClimateStartParams implements ControlParams
 {
-    private ?int $temperature = null;
+    private ?float $temperature = null;
 
-    private bool $acOn = false;
+    private ?float $copilotTemperature = null;
 
-    private bool $heating = false;
+    private int $cycleMode = 2;
 
-    private bool $defrost = false;
+    private ?int $timeSpan = null;
 
-    private bool $frontDefrost = false;
+    private int $remoteMode = 4;
 
-    private bool $rearDefrost = false;
+    private int $airAccuracy = 1;
+
+    private int $airConditioningMode = 1;
+
+    private ?int $windLevel = null;
 
     /**
      * Convert to control parameters map.
@@ -28,90 +32,131 @@ class ClimateStartParams implements ControlParams
      */
     public function toControlParamsMap(): array
     {
-        $params = [];
+        $params = [
+            'cycleMode' => $this->cycleMode,
+            'remoteMode' => $this->remoteMode,
+            'airAccuracy' => $this->airAccuracy,
+            'airConditioningMode' => $this->airConditioningMode,
+        ];
 
         if ($this->temperature !== null) {
-            $params['temperature'] = $this->temperature;
+            $params['mainSettingTemp'] = self::celsiusToScale($this->temperature);
+            $params['copilotSettingTemp'] = self::celsiusToScale($this->copilotTemperature ?? $this->temperature);
         }
 
-        $params['acOn'] = $this->acOn ? 1 : 0;
-        $params['heating'] = $this->heating ? 1 : 0;
-        $params['defrost'] = $this->defrost ? 1 : 0;
-        $params['frontDefrost'] = $this->frontDefrost ? 1 : 0;
-        $params['rearDefrost'] = $this->rearDefrost ? 1 : 0;
+        if ($this->timeSpan !== null) {
+            $params['timeSpan'] = $this->timeSpan;
+        }
+
+        if ($this->windLevel !== null) {
+            $params['windLevel'] = $this->windLevel;
+        }
+
+        if ($this->remoteMode === 4) {
+            $params['airSet'] = null;
+        }
 
         return $params;
     }
 
+    private static function celsiusToScale(float $temperature): int
+    {
+        return (int) round(($temperature - 15.0) + 1.0);
+    }
+
     // Getters and setters
-    public function getTemperature(): ?int
+    public function getTemperature(): ?float
     {
         return $this->temperature;
     }
 
-    public function setTemperature(?int $temperature): self
+    public function setTemperature(?float $temperature): self
     {
         $this->temperature = $temperature;
 
         return $this;
     }
 
-    public function isAcOn(): bool
+    public function getCopilotTemperature(): ?float
     {
-        return $this->acOn;
+        return $this->copilotTemperature;
     }
 
-    public function setAcOn(bool $acOn): self
+    public function setCopilotTemperature(?float $copilotTemperature): self
     {
-        $this->acOn = $acOn;
+        $this->copilotTemperature = $copilotTemperature;
 
         return $this;
     }
 
-    public function isHeating(): bool
+    public function getCycleMode(): int
     {
-        return $this->heating;
+        return $this->cycleMode;
     }
 
-    public function setHeating(bool $heating): self
+    public function setCycleMode(int $cycleMode): self
     {
-        $this->heating = $heating;
+        $this->cycleMode = $cycleMode;
 
         return $this;
     }
 
-    public function isDefrost(): bool
+    public function getTimeSpan(): ?int
     {
-        return $this->defrost;
+        return $this->timeSpan;
     }
 
-    public function setDefrost(bool $defrost): self
+    public function setTimeSpan(?int $timeSpan): self
     {
-        $this->defrost = $defrost;
+        $this->timeSpan = $timeSpan;
 
         return $this;
     }
 
-    public function isFrontDefrost(): bool
+    public function getRemoteMode(): int
     {
-        return $this->frontDefrost;
+        return $this->remoteMode;
     }
 
-    public function setFrontDefrost(bool $frontDefrost): self
+    public function setRemoteMode(int $remoteMode): self
     {
-        $this->frontDefrost = $frontDefrost;
+        $this->remoteMode = $remoteMode;
 
         return $this;
     }
 
-    public function isRearDefrost(): bool
+    public function getAirAccuracy(): int
     {
-        return $this->rearDefrost;
+        return $this->airAccuracy;
     }
 
-    public function setRearDefrost(bool $rearDefrost): self
+    public function setAirAccuracy(int $airAccuracy): self
     {
-        $this->rearDefrost = $rearDefrost;
+        $this->airAccuracy = $airAccuracy;
+
+        return $this;
+    }
+
+    public function getAirConditioningMode(): int
+    {
+        return $this->airConditioningMode;
+    }
+
+    public function setAirConditioningMode(int $airConditioningMode): self
+    {
+        $this->airConditioningMode = $airConditioningMode;
+
+        return $this;
+    }
+
+    public function getWindLevel(): ?int
+    {
+        return $this->windLevel;
+    }
+
+    public function setWindLevel(?int $windLevel): self
+    {
+        $this->windLevel = $windLevel;
 
         return $this;
     }

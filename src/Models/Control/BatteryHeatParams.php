@@ -26,7 +26,7 @@ class BatteryHeatParams extends BaseModel implements ControlParams
         $params = [];
 
         if ($this->enabled !== null) {
-            $params['batteryHeating'] = $this->enabled ? '1' : '0';
+            $params['batteryHeatSwitch'] = $this->enabled ? 1 : 0;
         }
 
         return $params;

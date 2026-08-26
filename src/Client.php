@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient;
 
+use function array_key_exists;
+
 use Byd\ApiClient\Api\ChargingApi;
 use Byd\ApiClient\Api\ControlApi;
 use Byd\ApiClient\Api\EnergyApi;
@@ -18,11 +20,14 @@ use Byd\ApiClient\Api\VehicleSettingsApi;
 use Byd\ApiClient\Config\BydConfig;
 use Byd\ApiClient\Crypto\BangcleCodec;
 use Byd\ApiClient\Exceptions\BydException;
+use Byd\ApiClient\Exceptions\BydSessionExpiredException;
+use Byd\ApiClient\Models\ChargeChangeResult;
 use Byd\ApiClient\Models\ChargingStatus;
 use Byd\ApiClient\Models\CommandAck;
 use Byd\ApiClient\Models\Control\BatteryHeatParams;
 use Byd\ApiClient\Models\Control\ClimateScheduleParams;
 use Byd\ApiClient\Models\Control\ClimateStartParams;
+use Byd\ApiClient\Models\Control\RemoteCommand;
 use Byd\ApiClient\Models\Control\SeatClimateParams;
 use Byd\ApiClient\Models\EnergyConsumption;
 use Byd\ApiClient\Models\GpsInfo;
@@ -55,6 +60,9 @@ class Client
     private ?SecureTransport $transport = null;
 
     private ?Session $session = null;
+
+    /** @var array<string, Vehicle> */
+    private array $vehiclesByVin = [];
 
     public function __construct(private BydConfig $config, private ?LoggerInterface $logger = new NullLogger())
     {
@@ -166,7 +174,15 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return VehicleApi::fetchVehicleList($this->config, $session, $transport);
+        $vehicles = VehicleApi::fetchVehicleList($this->config, $session, $transport);
+        $this->vehiclesByVin = [];
+        foreach ($vehicles as $vehicle) {
+            if ($vehicle->getVin() !== '') {
+                $this->vehiclesByVin[$vehicle->getVin()] = $vehicle;
+            }
+        }
+
+        return $vehicles;
     }
 
     /**
@@ -189,7 +205,9 @@ class Client
             $this->config,
             $session,
             $transport,
-            $vin
+            $vin,
+            null,
+            $this->energyTypeFor($vin)
         );
 
         $mergedLatest = $triggerInfo;
@@ -215,7 +233,8 @@ class Client
                     $session,
                     $transport,
                     $vin,
-                    $serial
+                    $serial,
+                    $this->energyTypeFor($vin)
                 );
 
                 if (is_array($latest)) {
@@ -225,6 +244,8 @@ class Client
                 if (VehicleRealtimeData::isReadyRaw($latest)) {
                     break;
                 }
+            } catch (BydSessionExpiredException $e) {
+                throw $e;
             } catch (BydException) {
                 // Continue polling on API errors
             }
@@ -289,6 +310,8 @@ class Client
                 if (GpsInfo::isGpsInfoReady($latest)) {
                     break;
                 }
+            } catch (BydSessionExpiredException $e) {
+                throw $e;
             } catch (BydException) {
                 // Continue polling on API errors
             }
@@ -325,6 +348,26 @@ class Client
         return ChargingApi::fetchChargingStatus($this->config, $session, $transport, $vin);
     }
 
+    /** Fetch the configured smart-charging schedule from the charging homepage. */
+    public function getChargingSchedule(string $vin): SmartChargingSchedule
+    {
+        $raw = ChargingApi::fetchChargingHomepage($this->config, $this->ensureSession(), $this->requireTransport(), $vin);
+
+        return new SmartChargingSchedule($raw);
+    }
+
+    /**
+     * Fetch current charging state and schedule in one request.
+     *
+     * @return array{0: ChargingStatus, 1: SmartChargingSchedule}
+     */
+    public function getChargingHomepage(string $vin): array
+    {
+        $raw = ChargingApi::fetchChargingHomepage($this->config, $this->ensureSession(), $this->requireTransport(), $vin);
+
+        return [new ChargingStatus($raw), new SmartChargingSchedule($raw)];
+    }
+
     /**
      * Fetch energy consumption data.
      *
@@ -335,7 +378,16 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return EnergyApi::fetchEnergyConsumption($this->config, $session, $transport, $vin);
+        $vehicle = $this->vehicleFor($vin);
+
+        return EnergyApi::fetchEnergyConsumption(
+            $this->config,
+            $session,
+            $transport,
+            $vin,
+            $this->powerTypeFor($vin),
+            $vehicle?->getOutModelType() ?: $vehicle?->getModelName()
+        );
     }
 
     /**
@@ -389,7 +441,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '1', null, $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::LOCK->value, null, $resolvedPwd);
     }
 
     /**
@@ -403,7 +455,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '2', null, $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::UNLOCK->value, null, $resolvedPwd);
     }
 
     /**
@@ -417,7 +469,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '3', $params->toControlParamsMap(), $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::START_CLIMATE->value, $params->toControlParamsMap(), $resolvedPwd);
     }
 
     /**
@@ -431,7 +483,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '4', null, $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::STOP_CLIMATE->value, null, $resolvedPwd);
     }
 
     /**
@@ -445,7 +497,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '5', null, $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::FLASH_LIGHTS->value, null, $resolvedPwd);
     }
 
     /**
@@ -459,7 +511,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '6', null, $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::CLOSE_WINDOWS->value, null, $resolvedPwd);
     }
 
     /**
@@ -473,7 +525,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '7', null, $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::FIND_CAR->value, null, $resolvedPwd);
     }
 
     /**
@@ -487,7 +539,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '8', $params->toControlParamsMap(), $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::SCHEDULE_CLIMATE->value, $params->toControlParamsMap(), $resolvedPwd);
     }
 
     /**
@@ -501,7 +553,7 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '9', $params->toControlParamsMap(), $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::SEAT_CLIMATE->value, $params->toControlParamsMap(), $resolvedPwd);
     }
 
     /**
@@ -515,7 +567,25 @@ class Client
         $session = $this->ensureSession();
         $transport = $this->requireTransport();
 
-        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, '10', $params->toControlParamsMap(), $resolvedPwd);
+        return ControlApi::pollRemoteControl($this->config, $session, $transport, $vin, RemoteCommand::BATTERY_HEAT->value, $params->toControlParamsMap(), $resolvedPwd);
+    }
+
+    /** Open all windows to BYD's ventilation position. */
+    public function openWindows(string $vin, ?string $commandPwd = null): RemoteControlResult
+    {
+        return ControlApi::pollRemoteControl($this->config, $this->ensureSession(), $this->requireTransport(), $vin, RemoteCommand::OPEN_WINDOWS->value, null, $this->resolveCommandPwd($commandPwd));
+    }
+
+    /** Open the powered trunk when supported by the vehicle. */
+    public function openTrunk(string $vin, ?string $commandPwd = null): RemoteControlResult
+    {
+        return ControlApi::pollRemoteControl($this->config, $this->ensureSession(), $this->requireTransport(), $vin, RemoteCommand::OPEN_TRUNK->value, null, $this->resolveCommandPwd($commandPwd));
+    }
+
+    /** Close the powered trunk when supported by the vehicle. */
+    public function closeTrunk(string $vin, ?string $commandPwd = null): RemoteControlResult
+    {
+        return ControlApi::pollRemoteControl($this->config, $this->ensureSession(), $this->requireTransport(), $vin, RemoteCommand::CLOSE_TRUNK->value, null, $this->resolveCommandPwd($commandPwd));
     }
 
     /**
@@ -562,6 +632,19 @@ class Client
         return SmartChargingApi::toggleSmartCharging($this->config, $session, $transport, $vin, $enable);
     }
 
+    /** Start an active charging session. BYD has no reliable cloud stop command. */
+    public function startCharging(string $vin, int $pollAttempts = 6, float $pollInterval = 2.0): ChargeChangeResult
+    {
+        return SmartChargingApi::startCharging(
+            $this->config,
+            $this->ensureSession(),
+            $this->requireTransport(),
+            $vin,
+            $pollAttempts,
+            $pollInterval
+        );
+    }
+
     /**
      * Rename a vehicle.
      *
@@ -587,6 +670,35 @@ class Client
         }
 
         return $this->transport;
+    }
+
+    private function vehicleFor(string $vin): ?Vehicle
+    {
+        if (!array_key_exists($vin, $this->vehiclesByVin)) {
+            $this->getVehicles();
+        }
+
+        return $this->vehiclesByVin[$vin] ?? null;
+    }
+
+    private function energyTypeFor(string $vin): string
+    {
+        $energyType = strtoupper($this->vehicleFor($vin)?->getEnergyType() ?? 'EV');
+
+        return match ($energyType) {
+            'PHEV', 'HYBRID', 'HEV' => '1',
+            default => '0',
+        };
+    }
+
+    private function powerTypeFor(string $vin): string
+    {
+        $energyType = strtoupper($this->vehicleFor($vin)?->getEnergyType() ?? 'EV');
+
+        return match ($energyType) {
+            'PHEV', 'HYBRID', 'HEV' => '2',
+            default => '0',
+        };
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Byd\ApiClient\Api;
 
 use Byd\ApiClient\Config\BydConfig;
+use Byd\ApiClient\Models\ChargeChangeResult;
 use Byd\ApiClient\Models\CommandAck;
 use Byd\ApiClient\Session;
 use Byd\ApiClient\Transport\TransportInterface;
@@ -16,6 +17,8 @@ class SmartChargingApi
     private const TOGGLE_ENDPOINT = '/control/smartCharge/changeChargeStatue';
 
     private const SAVE_ENDPOINT = '/control/smartCharge/saveOrUpdate';
+
+    private const RESULT_ENDPOINT = '/control/smartCharge/changeResult';
 
     /**
      * Toggle smart charging on or off.
@@ -89,5 +92,48 @@ class SmartChargingApi
         $data = array_merge(['vin' => $vin, 'raw' => $raw], $raw);
 
         return new CommandAck($data);
+    }
+
+    /** Start charging now and poll until BYD returns a terminal result. */
+    public static function startCharging(
+        BydConfig $config,
+        Session $session,
+        TransportInterface $transport,
+        string $vin,
+        int $pollAttempts = 6,
+        float $pollInterval = 2.0
+    ): ChargeChangeResult {
+        $trigger = TokenJson::postTokenJson(
+            self::TOGGLE_ENDPOINT,
+            $config,
+            $session,
+            $transport,
+            array_merge(Common::buildInnerBase($config, null, $vin), ['status' => '1']),
+            null,
+            $vin
+        );
+        $latest = is_array($trigger) ? $trigger : [];
+        $serial = isset($latest['requestSerial']) ? (string) $latest['requestSerial'] : null;
+
+        for ($attempt = 1; $serial !== null && $attempt <= $pollAttempts; $attempt++) {
+            if ($pollInterval > 0) {
+                usleep((int) ($pollInterval * 1000000));
+            }
+            $result = TokenJson::postTokenJson(
+                self::RESULT_ENDPOINT,
+                $config,
+                $session,
+                $transport,
+                Common::buildInnerBase($config, null, $vin, $serial),
+                null,
+                $vin
+            );
+            $latest = is_array($result) ? $result : [];
+            if (isset($latest['res']) && (int) $latest['res'] >= 2) {
+                break;
+            }
+        }
+
+        return new ChargeChangeResult($latest);
     }
 }

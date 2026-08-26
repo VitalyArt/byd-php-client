@@ -8,6 +8,7 @@ use Byd\ApiClient\Config\BydConfig;
 use Byd\ApiClient\Exceptions\BydApiException;
 use Byd\ApiClient\Exceptions\BydControlPasswordException;
 use Byd\ApiClient\Exceptions\BydRemoteControlException;
+use Byd\ApiClient\Exceptions\BydSessionExpiredException;
 use Byd\ApiClient\Models\RemoteControlResult;
 use Byd\ApiClient\Models\VerifyControlPasswordResponse;
 use Byd\ApiClient\Session;
@@ -25,7 +26,7 @@ class ControlApi
 
     private const REMOTE_CONTROL_RESULT_ENDPOINT = '/control/remoteControlResult';
 
-    private const CONTROL_PASSWORD_ERROR_CODES = [5005, 5006];
+    private const CONTROL_PASSWORD_ERROR_CODES = [5005, 5006, 5011];
 
     private const REMOTE_CONTROL_SERVICE_ERROR_CODES = [1009];
 
@@ -276,6 +277,8 @@ class ControlApi
                 if (is_array($latest) && self::isRemoteControlReady($latest)) {
                     break;
                 }
+            } catch (BydSessionExpiredException $e) {
+                throw $e;
             } catch (BydApiException) {
                 // Continue polling on API errors
             }
@@ -288,6 +291,14 @@ class ControlApi
             throw new BydRemoteControlException(
                 "Remote control {$commandType} failed: {$msg}",
                 2,
+                self::REMOTE_CONTROL_RESULT_ENDPOINT
+            );
+        }
+
+        if (!$parsed->isSuccess()) {
+            throw new BydRemoteControlException(
+                "Remote control {$commandType} did not reach a successful terminal state",
+                0,
                 self::REMOTE_CONTROL_RESULT_ENDPOINT
             );
         }

@@ -7,6 +7,8 @@ namespace Byd\ApiClient\Models;
 use DateTimeImmutable;
 use DateTimeInterface;
 
+use function is_array;
+
 /**
  * Energy consumption data.
  */
@@ -44,15 +46,39 @@ class EnergyConsumption extends BaseModel
 
     private ?DateTimeInterface $endTime = null;
 
+    private ?string $mileageUnit = null;
+
+    private ?float $cumulativeAverageEvConsumption = null;
+
+    private ?string $cumulativeEvUnit = null;
+
+    private ?float $last50kmAverageEvConsumption = null;
+
+    private ?float $last50kmEvConsumption = null;
+
+    private ?string $last50kmEvUnit = null;
+
+    private ?string $last50kmEvValueUnit = null;
+
     /**
      * @param array<string, mixed> $data
      */
     protected function populate(array $data): void
     {
-        $this->totalMileage = isset($data['totalMileage']) ? (float) $data['totalMileage'] : null;
+        $cumulative = is_array($data['cumulativeEnergyConsumption'] ?? null) ? $data['cumulativeEnergyConsumption'] : [];
+        $nearest = is_array($data['nearestEnergyConsumption'] ?? null) ? $data['nearestEnergyConsumption'] : [];
+
+        $this->totalMileage = isset($cumulative['totalMileage']) ? (float) $cumulative['totalMileage'] : (isset($data['totalMileage']) ? (float) $data['totalMileage'] : null);
+        $this->mileageUnit = isset($cumulative['mileageUnit']) ? self::normalizeUnit((string) $cumulative['mileageUnit']) : null;
+        $this->cumulativeAverageEvConsumption = isset($cumulative['avgEvConsumption']) ? (float) $cumulative['avgEvConsumption'] : null;
+        $this->cumulativeEvUnit = isset($cumulative['evUnit']) ? self::normalizeUnit((string) $cumulative['evUnit']) : null;
+        $this->last50kmAverageEvConsumption = isset($nearest['avgEvConsumption']) ? (float) $nearest['avgEvConsumption'] : null;
+        $this->last50kmEvConsumption = isset($nearest['evConsumption']) ? (float) $nearest['evConsumption'] : null;
+        $this->last50kmEvUnit = isset($nearest['evUnit']) ? self::normalizeUnit((string) $nearest['evUnit']) : null;
+        $this->last50kmEvValueUnit = isset($nearest['evValueUnit']) ? self::normalizeUnit((string) $nearest['evValueUnit']) : null;
         $this->totalEnergy = isset($data['totalEnergy']) ? (float) $data['totalEnergy'] : null;
-        $this->recentAverageEnergy = isset($data['recentAverageEnergy']) ? (float) $data['recentAverageEnergy'] : null;
-        $this->recent50kmEnergy = isset($data['recent50kmEnergy']) ? (float) $data['recent50kmEnergy'] : null;
+        $this->recentAverageEnergy = $this->last50kmAverageEvConsumption ?? (isset($data['recentAverageEnergy']) ? (float) $data['recentAverageEnergy'] : null);
+        $this->recent50kmEnergy = $this->last50kmEvConsumption ?? (isset($data['recent50kmEnergy']) ? (float) $data['recent50kmEnergy'] : null);
         $this->drivingEnergy = isset($data['drivingEnergy']) ? (float) $data['drivingEnergy'] : null;
         $this->chargingEnergy = isset($data['chargingEnergy']) ? (float) $data['chargingEnergy'] : null;
         $this->electricMileage = isset($data['electricMileage']) ? (float) $data['electricMileage'] : null;
@@ -71,6 +97,11 @@ class EnergyConsumption extends BaseModel
         if (isset($data['endTime'])) {
             $this->endTime = $this->parseTimestamp($data['endTime']);
         }
+    }
+
+    private static function normalizeUnit(string $unit): string
+    {
+        return str_replace('·', '', $unit);
     }
 
     private function parseTimestamp($timestamp): ?DateTimeInterface
@@ -167,5 +198,40 @@ class EnergyConsumption extends BaseModel
     public function getEndTime(): ?DateTimeInterface
     {
         return $this->endTime;
+    }
+
+    public function getMileageUnit(): ?string
+    {
+        return $this->mileageUnit;
+    }
+
+    public function getCumulativeAverageEvConsumption(): ?float
+    {
+        return $this->cumulativeAverageEvConsumption;
+    }
+
+    public function getCumulativeEvUnit(): ?string
+    {
+        return $this->cumulativeEvUnit;
+    }
+
+    public function getLast50kmAverageEvConsumption(): ?float
+    {
+        return $this->last50kmAverageEvConsumption;
+    }
+
+    public function getLast50kmEvConsumption(): ?float
+    {
+        return $this->last50kmEvConsumption;
+    }
+
+    public function getLast50kmEvUnit(): ?string
+    {
+        return $this->last50kmEvUnit;
+    }
+
+    public function getLast50kmEvValueUnit(): ?string
+    {
+        return $this->last50kmEvValueUnit;
     }
 }

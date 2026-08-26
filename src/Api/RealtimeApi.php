@@ -23,11 +23,12 @@ class RealtimeApi
         Session $session,
         TransportInterface $transport,
         string $vin,
-        ?string $requestSerial = null
+        ?string $requestSerial = null,
+        string $energyType = '0'
     ): array {
         $nowMs = (int) (microtime(true) * 1000);
         $inner = Common::buildInnerBase($config, $nowMs, $vin, $requestSerial);
-        $inner['energyType'] = '0';
+        $inner['energyType'] = $energyType;
         $inner['tboxVersion'] = $config->getTboxVersion();
 
         $decoded = TokenJson::postTokenJson(

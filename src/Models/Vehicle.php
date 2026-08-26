@@ -76,7 +76,8 @@ class Vehicle extends BaseModel
         $this->totalMileage = isset($data['totalMileage']) ? (float) $data['totalMileage'] : null;
         $this->modelId = isset($data['modelId']) ? (int) $data['modelId'] : null;
         $this->carType = isset($data['carType']) ? (int) $data['carType'] : null;
-        $this->defaultCar = (bool) ($data['defaultCar'] ?? false);
+        $defaultCar = $data['defaultCar'] ?? false;
+        $this->defaultCar = $defaultCar === true || $defaultCar === 1 || $defaultCar === '1';
         $this->empowerType = isset($data['empowerType']) ? (int) $data['empowerType'] : null;
         $this->permissionStatus = isset($data['permissionStatus']) ? (int) $data['permissionStatus'] : null;
         $this->tboxVersion = (string) ($data['tboxVersion'] ?? '');

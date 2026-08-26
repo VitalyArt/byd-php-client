@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Models;
 
+use function is_array;
+
 /**
  * Smart charging schedule.
  */
@@ -26,12 +28,14 @@ class SmartChargingSchedule extends BaseModel
      */
     protected function populate(array $data): void
     {
-        $this->targetSoc = isset($data['targetSoc']) ? (int) $data['targetSoc'] : null;
-        $this->startHour = isset($data['startHour']) ? (int) $data['startHour'] : null;
-        $this->startMinute = isset($data['startMinute']) ? (int) $data['startMinute'] : null;
-        $this->endHour = isset($data['endHour']) ? (int) $data['endHour'] : null;
-        $this->endMinute = isset($data['endMinute']) ? (int) $data['endMinute'] : null;
-        $this->enabled = (bool) ($data['enabled'] ?? false);
+        $schedule = is_array($data['smartChargeDto'] ?? null) ? $data['smartChargeDto'] : $data;
+        $this->targetSoc = isset($schedule['targetSoc']) ? (int) $schedule['targetSoc'] : null;
+        $this->startHour = isset($schedule['startHour']) ? (int) $schedule['startHour'] : null;
+        $this->startMinute = isset($schedule['startMinute']) ? (int) $schedule['startMinute'] : null;
+        $this->endHour = isset($schedule['endHour']) ? (int) $schedule['endHour'] : null;
+        $this->endMinute = isset($schedule['endMinute']) ? (int) $schedule['endMinute'] : null;
+        $value = $schedule['enabled'] ?? $schedule['smartChargeSwitch'] ?? false;
+        $this->enabled = $value === true || $value === 1 || $value === '1';
     }
 
     // Getters

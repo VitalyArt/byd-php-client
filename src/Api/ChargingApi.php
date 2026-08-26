@@ -24,18 +24,28 @@ class ChargingApi
         TransportInterface $transport,
         string $vin
     ): ChargingStatus {
-        $inner = Common::buildInnerBase($config, null, $vin);
+        $decoded = self::fetchChargingHomepage($config, $session, $transport, $vin);
 
+        return new ChargingStatus(is_array($decoded) ? $decoded : []);
+    }
+
+    /** @return array<string, mixed> */
+    public static function fetchChargingHomepage(
+        BydConfig $config,
+        Session $session,
+        TransportInterface $transport,
+        string $vin
+    ): array {
         $decoded = TokenJson::postTokenJson(
             self::ENDPOINT,
             $config,
             $session,
             $transport,
-            $inner,
+            Common::buildInnerBase($config, null, $vin),
             null,
             $vin
         );
 
-        return new ChargingStatus(is_array($decoded) ? $decoded : []);
+        return is_array($decoded) ? $decoded : [];
     }
 }
