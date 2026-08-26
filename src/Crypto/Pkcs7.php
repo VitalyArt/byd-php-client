@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Crypto;
 
-use function chr;
 use function ord;
 use function strlen;
 
@@ -25,13 +24,13 @@ class Pkcs7
      * @param int $blockSize Block size in bytes (default 16).
      * @return string Padded data whose length is a multiple of *blockSize*.
      */
-    public static function addPkcs7(string $data, int $blockSize = 16): string
+    public function addPkcs7(string $data, int $blockSize = 16): string
     {
         $dataLength = strlen($data);
         $remainder = $dataLength % $blockSize;
         $padLen = ($remainder === 0) ? $blockSize : ($blockSize - $remainder);
 
-        return $data . str_repeat(chr($padLen), $padLen);
+        return $data . str_repeat(pack('C', $padLen), $padLen);
     }
 
     /**
@@ -40,7 +39,7 @@ class Pkcs7
      * @param string $data Potentially padded data.
      * @return string Unpadded data, or the original *data* if padding is invalid.
      */
-    public static function stripPkcs7(string $data): string
+    public function stripPkcs7(string $data): string
     {
         $dataLength = strlen($data);
 

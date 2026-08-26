@@ -3,107 +3,38 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require dirname(__DIR__).'/vendor/autoload.php';
 
-use Byd\ApiClient\Client;
-use Byd\ApiClient\Config\BydConfig;
-use Byd\ApiClient\Exceptions\BydException;
+use Byd\ApiClient\BydClient;
+use Byd\ApiClient\Config\EnvironmentConfigLoader;
+use Byd\ApiClient\Exception\BydException;
 
-function showHelp(): void
-{
-    echo "BYD API Client\n";
-    echo "Usage: byd-api [command]\n\n";
-    echo "Commands:\n";
-    echo "  help          Show this help\n";
-    echo "  vehicles      List all vehicles\n";
-    echo "  login         Test login\n";
-    echo "\n";
-    echo "Configuration:\n";
-    echo "  Set environment variables:\n";
-    echo "    BYD_USERNAME      Your BYD account email\n";
-    echo "    BYD_PASSWORD      Your BYD account password\n";
-    echo "    BYD_CONTROL_PIN   (Optional) Your vehicle control PIN\n";
+$command = $argv[1] ?? 'help';
+if (!in_array($command, ['help', 'login', 'vehicles'], true)) {
+    fwrite(STDERR, "Unknown command: {$command}\n");
+    exit(2);
+}
+if ($command === 'help') {
+    echo "BYD API Client\nUsage: byd-api [help|login|vehicles]\nRequired environment: BYD_USERNAME, BYD_PASSWORD\n";
+    exit(0);
 }
 
-function loadConfig(): BydConfig
-{
-    $username = getenv('BYD_USERNAME');
-    $password = getenv('BYD_PASSWORD');
-    
-    if (!$username || !$password) {
-        throw new RuntimeException('Please set BYD_USERNAME and BYD_PASSWORD environment variables');
+$environment = [];
+foreach (['BYD_USERNAME', 'BYD_PASSWORD', 'BYD_CONTROL_PIN', 'BYD_BASE_URL', 'BYD_COUNTRY_CODE', 'BYD_LANGUAGE', 'BYD_TIME_ZONE'] as $name) {
+    $environment[$name] = getenv($name);
+}
+
+try {
+    $client = new BydClient((new EnvironmentConfigLoader())->load($environment));
+    if ($command === 'login') {
+        $client->authenticate();
+        echo "Login successful.\n";
+        exit(0);
     }
-    
-    return BydConfig::fromEnv();
-}
-
-function cmdLogin(): void
-{
-    $config = loadConfig();
-    $client = new Client($config);
-    
-    try {
-        echo "Logging in...\n";
-        $client->login();
-        echo "Login successful!\n";
-    } catch (BydException $e) {
-        echo "Login failed: " . $e->getMessage() . "\n";
-        exit(1);
+    foreach ($client->vehicles()->all() as $vehicle) {
+        echo "{$vehicle->vin->value}\t{$vehicle->brandName} {$vehicle->modelName}\t{$vehicle->alias}\n";
     }
-}
-
-function cmdVehicles(): void
-{
-    $config = loadConfig();
-    $client = new Client($config);
-    
-    try {
-        echo "Logging in...\n";
-        $client->login();
-        
-        echo "Fetching vehicles...\n";
-        $vehicles = $client->getVehicles();
-        
-        if (empty($vehicles)) {
-            echo "No vehicles found.\n";
-            return;
-        }
-        
-        foreach ($vehicles as $index => $vehicle) {
-            echo "Vehicle " . ($index + 1) . ":\n";
-            echo "  VIN: " . $vehicle->getVin() . "\n";
-            echo "  Model: " . $vehicle->getModelName() . "\n";
-            echo "  Brand: " . $vehicle->getBrandName() . "\n";
-            echo "  Plate: " . $vehicle->getAutoPlate() . "\n";
-            echo "  Alias: " . $vehicle->getAutoAlias() . "\n";
-            echo "\n";
-        }
-    } catch (BydException $e) {
-        echo "Error: " . $e->getMessage() . "\n";
-        exit(1);
-    }
-}
-
-// Main execution
-if ($_SERVER['argc'] < 2) {
-    showHelp();
+} catch (BydException|InvalidArgumentException $exception) {
+    fwrite(STDERR, $exception->getMessage()."\n");
     exit(1);
-}
-
-$command = $_SERVER['argv'][1];
-
-switch ($command) {
-    case 'help':
-        showHelp();
-        break;
-    case 'login':
-        cmdLogin();
-        break;
-    case 'vehicles':
-        cmdVehicles();
-        break;
-    default:
-        echo "Unknown command: $command\n\n";
-        showHelp();
-        exit(1);
 }

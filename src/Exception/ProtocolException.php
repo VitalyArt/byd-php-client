@@ -1,0 +1,9 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Byd\ApiClient\Exception;
+
+class ProtocolException extends BydException
+{
+}

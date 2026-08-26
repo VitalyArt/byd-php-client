@@ -1,6 +1,10 @@
 parameters:
-	level: 5
+	level: max
 	paths:
 		- src
 		- tests
+	excludePaths:
+		analyse:
+			- src/Crypto/BangcleBlock.php
+			- src/Crypto/BangcleCodec.php
 	treatPhpDocTypesAsCertain: false

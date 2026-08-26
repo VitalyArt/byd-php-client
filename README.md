@@ -1,20 +1,8 @@
-# BYD API Client (PHP)
+# BYD API Client for PHP
 
-PHP client library for the BYD vehicle API.
+Modern, typed and synchronous client for the BYD vehicle API. Requires PHP 8.4+ and uses immutable DTOs, Symfony Serializer attributes, PSR-18 HTTP transport and PSR-3 logging.
 
-## Features
-
-- [x] Authentication
-- [x] Vehicle listing
-- [x] Real-time data
-- [x] GPS information
-- [x] HVAC status
-- [x] Charging status
-- [x] Energy consumption
-- [x] Remote control
-- [x] Smart charging
-- [x] Push notifications
-- [x] Vehicle settings
+> BYD does not publish this API. Protocol changes may happen without notice.
 
 ## Installation
 
@@ -25,110 +13,64 @@ composer require byd/api-client
 ## Usage
 
 ```php
-<?php
+use Byd\ApiClient\BydClient;
+use Byd\ApiClient\Config\ClientConfig;
+use Byd\ApiClient\Config\Credentials;
 
-require_once 'vendor/autoload.php';
+$client = new BydClient(new ClientConfig(
+    credentials: new Credentials(
+        username: 'name@example.com',
+        password: 'secret',
+        controlPin: '1234',
+    ),
+));
 
-use Byd\ApiClient\Client;
-use Byd\ApiClient\Config\BydConfig;
+$vehicle = $client->vehicles()->all()[0];
 
-// Create configuration
-$config = BydConfig::fromEnv([
-    'username' => 'your-email@example.com',
-    'password' => 'your-password',
-    // ... other options
-]);
-
-// Create client
-$client = new Client($config);
-
-// Login
-$client->login();
-
-// Get vehicles
-$vehicles = $client->getVehicles();
-
-foreach ($vehicles as $vehicle) {
-    echo "VIN: " . $vehicle->getVin() . "\n";
-    echo "Model: " . $vehicle->getModelName() . "\n";
-    echo "---\n";
-}
+$telemetry = $client->telemetry($vehicle->vin)->realtime();
+$position = $client->telemetry($vehicle->vin)->gps();
+$climate = $client->climate($vehicle->vin)->status();
+$charging = $client->charging($vehicle->vin)->status();
+$client->controls($vehicle->vin)->lock();
 ```
 
-## Configuration
+All response objects are immutable `readonly` DTOs with public typed properties. The original server response is available through `$dto->raw`; unknown fields do not break deserialization.
 
-The client can be configured in several ways:
+## Services
 
-### Environment Variables
+- `$client->vehicles()` — list and resolve account vehicles.
+- `$client->telemetry($vin)` — realtime data, GPS and energy consumption.
+- `$client->climate($vin)` — status, start, stop and scheduling.
+- `$client->charging($vin)` — status, schedule, smart charging and start charging.
+- `$client->controls($vin)` — PIN verification, locks, lights, windows, trunk, seats and battery heating.
+- `$client->notifications($vin)` — read and change push state.
+- `$client->settings($vin)` — rename a vehicle.
 
-```env
-BYD_USERNAME=your-email@example.com
-BYD_PASSWORD=your-password
-BYD_BASE_URL=https://dilinkappoversea-eu.byd.auto
-BYD_COUNTRY_CODE=NL
-BYD_LANGUAGE=en
-BYD_TIME_ZONE=Europe/Amsterdam
-```
+Request DTO constructors validate invariants before a network request. These include `ClimateStartRequest`, `ClimateScheduleCommand`, `ChargingScheduleRequest`, `SeatClimateRequest` and `BatteryHeatRequest`.
 
-### Direct Configuration
+## Configuration and dependency injection
 
-```php
-$config = new BydConfig(
-    'your-email@example.com',
-    'your-password',
-    'https://dilinkappoversea-eu.byd.auto', // base URL
-    'NL', // country code
-    'en', // language
-    'Europe/Amsterdam', // time zone
-    // ... other options
-);
-```
+`ClientConfig` groups credentials, locale, device profile, protocol settings and retry/polling policies. `EnvironmentConfigLoader` is the only environment-input adapter.
 
-## API Documentation
+Guzzle is used by default. A custom PSR-18 client, PSR-17 request/stream factory, logger, clock, sleeper, nonce generator, secure transport or DTO serializer can be injected through `BydClient`.
 
-Key classes and methods:
+Expired sessions follow `AuthenticationRetryPolicy`. Only an explicit session-expired response is retried; ambiguous transport failures are never replayed. Polling behavior is controlled by a shared `PollingPolicy` and testable clock/sleeper abstractions.
 
-- [`Client`](src/Client.php) - Main client class
-- [`BydConfig`](src/Config/BydConfig.php) - Configuration class
-- [`Vehicle`](src/Models/Vehicle.php) - Vehicle model
-- [`VehicleApi`](src/Api/VehicleApi.php) - Vehicle-related API methods
-- [`RealtimeApi`](src/Api/RealtimeApi.php) - Real-time data API methods
-- [`GpsApi`](src/Api/GpsApi.php) - GPS information API methods
-- [`HvacApi`](src/Api/HvacApi.php) - HVAC status API methods
-- [`ChargingApi`](src/Api/ChargingApi.php) - Charging status API methods
-- [`EnergyApi`](src/Api/EnergyApi.php) - Energy consumption API methods
-- [`ControlApi`](src/Api/ControlApi.php) - Remote control API methods
-- [`SmartChargingApi`](src/Api/SmartChargingApi.php) - Smart charging API methods
-- [`PushNotificationsApi`](src/Api/PushNotificationsApi.php) - Push notifications API methods
-- [`VehicleSettingsApi`](src/Api/VehicleSettingsApi.php) - Vehicle settings API methods
+## Serialization
 
-## Requirements
+Every request, response and protocol envelope is an object under `Dto`. Every JSON property has an explicit Symfony `#[SerializedName]`; diagnostic fields use `#[Ignore]`. `DtoSerializer` centralizes aliases, unknown enum fallback, numeric-string conversion and sentinel normalization.
 
-- PHP 8.1+
-- ext-json
-- guzzlehttp/guzzle ^7.0
-- psr/log ^3.0
+To add an endpoint, add an `Endpoint` enum case, immutable request/response DTOs, and a method in the appropriate resource service. Do not build associative request arrays inside services.
 
-## Development
-
-### Install dependencies
-
-```bash
-composer install
-```
-
-### Run tests
+## Quality checks
 
 ```bash
 composer test
+composer phpstan
+composer cs-check
+composer rector-check
+composer validate --strict
+composer audit
 ```
 
-### Code style
-
-```bash
-composer cs-fix
-```
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Live integration tests are opt-in and require real BYD credentials.

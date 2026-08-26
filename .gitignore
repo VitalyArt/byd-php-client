@@ -34,5 +34,6 @@ composer.lock
 # Dev tools
 coverage/
 .phpunit.result.cache
+.phpunit.cache/
 .php-cs-fixer.cache
 *.bak

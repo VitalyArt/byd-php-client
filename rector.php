@@ -11,7 +11,7 @@ return RectorConfig::configure()
         __DIR__ . '/src',
         __DIR__ . '/tests',
     ])
-    ->withPhpSets(php81: true)
+    ->withPhpSets(php84: true)
     ->withSets([
         SetList::DEAD_CODE,
         SetList::CODE_QUALITY,
@@ -20,7 +20,6 @@ return RectorConfig::configure()
     ])
     ->withSkip([
         // Keep existing coding style conventions
-        \Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector::class,
         \Rector\CodingStyle\Rector\Catch_\CatchExceptionNameMatchingTypeRector::class,
         \Rector\Php81\Rector\Property\ReadOnlyPropertyRector::class,
     ]);

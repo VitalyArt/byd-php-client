@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Crypto;
 
-use Byd\ApiClient\Exceptions\BangcleException;
+use Byd\ApiClient\Exception\BangcleException;
 
 use function sprintf;
 use function strlen;
@@ -12,16 +12,18 @@ use function strlen;
 /**
  * Encode and decode Bangcle envelopes using white-box AES.
  */
+/** @phpstan-type BangcleTables array{inv_round: string, inv_xor: string, inv_first: string, round: string, xor: string, final: string, perm_decrypt: string, perm_encrypt: string} */
 class BangcleCodec
 {
+    /** @var BangcleTables|null */
     private ?array $tables = null;
 
     // Binary table file format constants
-    private const MAGIC = 'BGTB';
+    private const string MAGIC = 'BGTB';
 
-    private const VERSION = 1;
+    private const int VERSION = 1;
 
-    private const TABLE_COUNT = 8;
+    private const int TABLE_COUNT = 8;
 
     private const HEADER_SIZE = 4 + 2 + 2;
 
@@ -31,10 +33,10 @@ class BangcleCodec
     // offset + length
     private const INDEX_SIZE = self::TABLE_COUNT * self::INDEX_ENTRY_SIZE;
 
-    private const ZERO_IV = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    private const string ZERO_IV = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
 
     // Expected sizes for each table, in order.
-    private const TABLE_SPECS = [
+    private const array TABLE_SPECS = [
         ['inv_round', 0x28000],
         ['inv_xor', 0x3C000],
         ['inv_first', 0x1000],
@@ -45,8 +47,11 @@ class BangcleCodec
         ['perm_encrypt', 8],
     ];
 
-    public function __construct(private ?string $tablesPath = null)
-    {
+    public function __construct(
+        private ?string $tablesPath = null,
+        private readonly BangcleBlock $blockCipher = new BangcleBlock(),
+        private readonly Pkcs7 $padding = new Pkcs7(),
+    ) {
     }
 
     /**
@@ -54,6 +59,7 @@ class BangcleCodec
      *
      * @throws BangcleException
      */
+    /** @return BangcleTables */
     private function loadTables(): array
     {
         if ($this->tables !== null) {
@@ -142,6 +148,7 @@ class BangcleCodec
             $tables[$expectedName] = substr($data, $tableOffset, $expectedLen);
         }
 
+        /** @var BangcleTables $tables */
         return $tables;
     }
 
@@ -185,8 +192,8 @@ class BangcleCodec
     {
         $tables = $this->loadTables();
         $plainBytes = $plaintext; // In PHP strings are bytes
-        $padded = Pkcs7::addPkcs7($plainBytes);
-        $ciphertext = BangcleBlock::encryptCbc($tables, $padded, self::ZERO_IV);
+        $padded = $this->padding->addPkcs7($plainBytes);
+        $ciphertext = $this->blockCipher->encryptCbc($tables, $padded, self::ZERO_IV);
 
         return 'F' . base64_encode($ciphertext);
     }
@@ -217,8 +224,8 @@ class BangcleCodec
             throw new BangcleException(sprintf('Bangcle ciphertext length %d is not a multiple of 16', $cipherLength));
         }
 
-        $plaintext = BangcleBlock::decryptCbc($tables, $ciphertext, self::ZERO_IV);
+        $plaintext = $this->blockCipher->decryptCbc($tables, $ciphertext, self::ZERO_IV);
 
-        return Pkcs7::stripPkcs7($plaintext);
+        return $this->padding->stripPkcs7($plaintext);
     }
 }

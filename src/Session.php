@@ -4,94 +4,35 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient;
 
-use Byd\ApiClient\Crypto\Hashing;
+use Byd\ApiClient\Crypto\Cryptography;
+use DateTimeImmutable;
+use SensitiveParameter;
 
-/**
- * Mutable session state after successful login.
- */
-class Session
+final readonly class Session
 {
-    private float $createdAt;
-
-    private ?string $contentKeyCache = null;
-
-    private ?string $signKeyCache = null;
-
     public function __construct(
-        private string $userId,
-        private string $signToken,
-        private string $encryToken,
-        private float $ttl = 43200.0, // 12 hours default
-        ?float $createdAt = null
+        public string $userId,
+        #[SensitiveParameter]
+        public string $signToken,
+        #[SensitiveParameter]
+        public string $encryptionToken,
+        public DateTimeImmutable $createdAt,
+        public int $ttlSeconds,
     ) {
-        $this->createdAt = $createdAt ?? microtime(true);
     }
 
-    /**
-     * AES key for encrypting/decrypting inner payload data.
-     * Derived as MD5(encry_token) in uppercase hex.
-     */
-    public function contentKey(): string
+    public function isExpired(DateTimeImmutable $now): bool
     {
-        if ($this->contentKeyCache === null) {
-            $this->contentKeyCache = Hashing::md5Hex($this->encryToken);
-        }
-
-        return $this->contentKeyCache;
+        return $now->getTimestamp() >= $this->createdAt->getTimestamp() + $this->ttlSeconds;
     }
 
-    /**
-     * Key used in request signature computation.
-     * Derived as MD5(sign_token) in uppercase hex.
-     */
-    public function signKey(): string
+    public function signingKey(Cryptography $cryptography): string
     {
-        if ($this->signKeyCache === null) {
-            $this->signKeyCache = Hashing::md5Hex($this->signToken);
-        }
-
-        return $this->signKeyCache;
+        return $cryptography->md5($this->signToken);
     }
 
-    /**
-     * Whether the session has exceeded its TTL.
-     */
-    public function isExpired(): bool
+    public function contentKey(Cryptography $cryptography): string
     {
-        return (microtime(true) - $this->createdAt) >= $this->ttl;
-    }
-
-    /**
-     * Seconds since the session was created.
-     */
-    public function age(): float
-    {
-        return microtime(true) - $this->createdAt;
-    }
-
-    // Getters
-    public function getUserId(): string
-    {
-        return $this->userId;
-    }
-
-    public function getSignToken(): string
-    {
-        return $this->signToken;
-    }
-
-    public function getEncryToken(): string
-    {
-        return $this->encryToken;
-    }
-
-    public function getCreatedAt(): float
-    {
-        return $this->createdAt;
-    }
-
-    public function getTtl(): float
-    {
-        return $this->ttl;
+        return $cryptography->md5($this->encryptionToken);
     }
 }

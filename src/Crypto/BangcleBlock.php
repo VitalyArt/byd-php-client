@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Crypto;
 
-use Byd\ApiClient\Exceptions\BangcleException;
+use Byd\ApiClient\Exception\BangcleException;
 
 use function ord;
 use function strlen;
@@ -18,12 +18,14 @@ use function strlen;
  * The cipher uses pre-computed lookup tables extracted from
  * libencrypt.so rather than a standard AES key schedule.
  */
+/** @phpstan-type BangcleTables array{inv_round: string, inv_xor: string, inv_first: string, round: string, xor: string, final: string, perm_decrypt: string, perm_encrypt: string} */
 class BangcleBlock
 {
     /**
      * Transpose 4x4 block into working state layout (col*8+row).
      */
-    private static function prepareAesMatrix(string $inputBlock, array &$output): void
+    /** @param array<int, int> $output */
+    private function prepareAesMatrix(string $inputBlock, array &$output): void
     {
         for ($col = 0; $col < 4; $col++) {
             for ($row = 0; $row < 4; $row++) {
@@ -37,20 +39,20 @@ class BangcleBlock
      *
      * Port of bangcle.js decryptBlockAuth (lines 37-144).
      *
-     * @param array $tables Pre-loaded lookup tables.
+     * @param BangcleTables $tables Pre-loaded lookup tables.
      * @param string $block 16-byte ciphertext block.
      * @param int $roundStart Starting round (default 1 = full decryption).
      * @return string 16-byte decrypted block.
      * @throws BangcleException
      */
-    public static function decryptBlockAuth(array $tables, string $block, int $roundStart = 1): string
+    public function decryptBlockAuth(array $tables, string $block, int $roundStart = 1): string
     {
         $state = array_fill(0, 32, 0);
         $temp64 = array_fill(0, 64, 0);
         $tmp32 = array_fill(0, 32, 0);
         $output = array_fill(0, 16, 0);
 
-        self::prepareAesMatrix($block, $state);
+        $this->prepareAesMatrix($block, $state);
         $param3 = $roundStart;
 
         for ($rnd = 9; $rnd > max(0, $param3 - 1); $rnd--) {
@@ -69,8 +71,8 @@ class BangcleBlock
                     $idx = $byteVal + ($i + ($l_var21 + $u_var7) * 4) * 256;
 
                     // Extract 4 bytes as little-endian integer from inv_round table
-                    $value = self::unpackLittleEndianInt(substr((string) $tables['inv_round'], $idx * 4, 4));
-                    self::packLittleEndianInt($value, $temp64, $base + $j * 4);
+                    $value = $this->unpackLittleEndianInt(substr((string) $tables['inv_round'], $idx * 4, 4));
+                    $this->packLittleEndianInt($value, $temp64, $base + $j * 4);
                 }
 
                 $permPtr += 2;
@@ -164,20 +166,20 @@ class BangcleBlock
      *
      * Port of bangcle.js encryptBlockAuth (lines 147-253).
      *
-     * @param array $tables Pre-loaded lookup tables.
+     * @param BangcleTables $tables Pre-loaded lookup tables.
      * @param string $block 16-byte plaintext block.
      * @param int $roundEnd Ending round (default 10 = full encryption).
      * @return string 16-byte encrypted block.
      * @throws BangcleException
      */
-    public static function encryptBlockAuth(array $tables, string $block, int $roundEnd = 10): string
+    public function encryptBlockAuth(array $tables, string $block, int $roundEnd = 10): string
     {
         $state = array_fill(0, 32, 0);
         $temp64 = array_fill(0, 64, 0);
         $tmp32 = array_fill(0, 32, 0);
         $output = array_fill(0, 16, 0);
 
-        self::prepareAesMatrix($block, $state);
+        $this->prepareAesMatrix($block, $state);
         $param3 = $roundEnd;
 
         $rounds = min(9, max(0, $param3));
@@ -196,8 +198,8 @@ class BangcleBlock
                     $idx = $byteVal + ($i + ($l_var21 + $u_var8) * 4) * 256;
 
                     // Extract 4 bytes as little-endian integer from round table
-                    $value = self::unpackLittleEndianInt(substr((string) $tables['round'], $idx * 4, 4));
-                    self::packLittleEndianInt($value, $temp64, $base + $j * 4);
+                    $value = $this->unpackLittleEndianInt(substr((string) $tables['round'], $idx * 4, 4));
+                    $this->packLittleEndianInt($value, $temp64, $base + $j * 4);
                 }
 
                 $permPtr += 2;
@@ -283,13 +285,13 @@ class BangcleBlock
     /**
      * Decrypt data using white-box AES in CBC mode.
      *
-     * @param array $tables Pre-loaded lookup tables.
+     * @param BangcleTables $tables Pre-loaded lookup tables.
      * @param string $data Ciphertext (must be a multiple of 16 bytes).
      * @param string $iv 16-byte initialization vector.
      * @return string Decrypted plaintext.
      * @throws BangcleException
      */
-    public static function decryptCbc(array $tables, string $data, string $iv): string
+    public function decryptCbc(array $tables, string $data, string $iv): string
     {
         $dataLength = strlen($data);
         $ivLength = strlen($iv);
@@ -307,7 +309,7 @@ class BangcleBlock
 
         for ($offset = 0; $offset < $dataLength; $offset += 16) {
             $block = substr($data, $offset, 16);
-            $decrypted = self::decryptBlockAuth($tables, $block, 1);
+            $decrypted = $this->decryptBlockAuth($tables, $block, 1);
 
             // XOR with previous block
             $decryptedBytes = array_values(unpack('C*', $decrypted));
@@ -326,13 +328,13 @@ class BangcleBlock
     /**
      * Encrypt data using white-box AES in CBC mode.
      *
-     * @param array $tables Pre-loaded lookup tables.
+     * @param BangcleTables $tables Pre-loaded lookup tables.
      * @param string $data Plaintext (must be a multiple of 16 bytes).
      * @param string $iv 16-byte initialization vector.
      * @return string Ciphertext.
      * @throws BangcleException
      */
-    public static function encryptCbc(array $tables, string $data, string $iv): string
+    public function encryptCbc(array $tables, string $data, string $iv): string
     {
         $dataLength = strlen($data);
         $ivLength = strlen($iv);
@@ -359,7 +361,7 @@ class BangcleBlock
             }
 
             $block = implode('', array_map(chr(...), $blockBytes));
-            $encrypted = self::encryptBlockAuth($tables, $block, 10);
+            $encrypted = $this->encryptBlockAuth($tables, $block, 10);
             $result .= $encrypted;
             $prev = $encrypted;
         }
@@ -370,7 +372,7 @@ class BangcleBlock
     /**
      * Unpack little-endian integer from 4 bytes
      */
-    private static function unpackLittleEndianInt(string $bytes): int
+    private function unpackLittleEndianInt(string $bytes): int
     {
         $unpacked = unpack('V', $bytes);
 
@@ -380,7 +382,8 @@ class BangcleBlock
     /**
      * Pack integer as little-endian into array
      */
-    private static function packLittleEndianInt(int $value, array &$array, int $offset): void
+    /** @param array<int, int> $array */
+    private function packLittleEndianInt(int $value, array &$array, int $offset): void
     {
         $packed = pack('V', $value);
         $bytes = array_values(unpack('C*', $packed));

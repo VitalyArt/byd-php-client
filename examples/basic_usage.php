@@ -2,118 +2,212 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require dirname(__DIR__).'/vendor/autoload.php';
 
-use Byd\ApiClient\Client;
-use Byd\ApiClient\Config\BydConfig;
-use Byd\ApiClient\Exceptions\BydException;
-use Byd\ApiClient\Models\ChargingState;
-use Byd\ApiClient\Models\OnlineState;
+use Byd\ApiClient\BydClient;
+use Byd\ApiClient\Config\EnvironmentConfigLoader;
+use Byd\ApiClient\Dto\Response\CumulativeEnergyConsumption;
+use Byd\ApiClient\Dto\Response\RecentEnergyConsumption;
+use Byd\ApiClient\Enum\EnergyType;
+use Byd\ApiClient\Exception\BydException;
+
+/** @param callable(): void $operation */
+function section(string $title, callable $operation): void
+{
+    echo "\n--- {$title} ---\n";
+
+    try {
+        $operation();
+    } catch (BydException $exception) {
+        echo 'Unavailable: '.$exception->getMessage()."\n";
+    }
+}
+
+function value(int|float|string|null $value, string $unit = ''): string
+{
+    return $value === null || $value === '' ? 'unknown' : (string) $value.$unit;
+}
+
+function optional(string $label, int|float|string|null $value, string $unit = ''): void
+{
+    if ($value !== null && $value !== '') {
+        echo $label.': '.$value.$unit."\n";
+    }
+}
+
+$environment = [];
+foreach (['BYD_USERNAME', 'BYD_PASSWORD', 'BYD_CONTROL_PIN', 'BYD_BASE_URL', 'BYD_COUNTRY_CODE', 'BYD_LANGUAGE', 'BYD_TIME_ZONE'] as $name) {
+    $environment[$name] = getenv($name);
+}
 
 try {
-    $config = new BydConfig(
-        getenv('BYD_USERNAME') ?: 'test@example.com',
-        getenv('BYD_PASSWORD') ?: 'password123',
-        getenv('BYD_BASE_URL') ?: 'https://dilinkappoversea-eu.byd.auto',
-        getenv('BYD_COUNTRY_CODE') ?: 'NL',
-    );
+    $client = new BydClient((new EnvironmentConfigLoader())->load($environment));
+    $vehicles = $client->vehicles()->all();
 
-    $client = new Client($config);
+    if ($vehicles === []) {
+        echo "No vehicles found.\n";
 
-    echo "Logging in...\n";
-    $client->login();
-    echo "Login successful!\n\n";
-
-    echo "Fetching vehicles...\n";
-    $vehicles = $client->getVehicles();
-
-    foreach ($vehicles as $vehicle) {
-        $vin = $vehicle->getVin();
-        echo "=== Vehicle: {$vehicle->getModelName()} ({$vin}) ===\n";
-        echo "Brand: {$vehicle->getBrandName()}\n";
-        echo "Plate: {$vehicle->getAutoPlate()}\n\n";
-
-        // Realtime data
-        echo "--- Realtime Data ---\n";
-        $realtime = $client->getVehicleRealtime($vin);
-        echo "Online: " . $realtime->getOnlineState()->name . "\n";
-        echo "Vehicle state: " . $realtime->getVehicleState()->name . "\n";
-        echo "Battery: " . $realtime->getElecPercent() . "%\n";
-        echo "Range: " . $realtime->getEnduranceMileageV2() . " " . $realtime->getEnduranceMileageV2Unit() . "\n";
-        echo "Total mileage: " . $realtime->getTotalMileageV2() . " " . $realtime->getTotalMileageV2Unit() . "\n";
-        echo "Charge state: " . $realtime->getChargeState()->name . "\n";
-        echo "Locked: " . ($realtime->isLocked() ? 'yes' : ($realtime->isLocked() === null ? 'unknown' : 'no')) . "\n";
-        echo "Doors open: " . ($realtime->isAnyDoorOpen() ? 'yes' : 'no') . "\n";
-        echo "Windows open: " . ($realtime->isAnyWindowOpen() ? 'yes' : 'no') . "\n";
-        echo "Tire pressure unit: " . $realtime->getTirePressUnit()->name . "\n";
-        if ($realtime->isInteriorTempAvailable()) {
-            echo "Interior temp: " . $realtime->getTempInCar() . "°C\n";
-        }
-        echo "\n";
-
-        // HVAC
-        echo "--- HVAC Status ---\n";
-        try {
-            $hvac = $client->getHvacStatus($vin);
-
-            echo "HVAC status: " . $hvac->getStatus()->name . "\n";
-            echo "AC mode: " . $hvac->getAirConditioningMode()->name . "\n";
-            echo "Wind mode: " . $hvac->getWindMode()->name . "\n";
-            echo "Driver seat heat: " . $hvac->getMainSeatHeatState()->name . "\n";
-            echo "Steering wheel heat: " . $hvac->getSteeringWheelHeatState()->name . "\n";
-            if ($hvac->getTempInCar() !== null) {
-                echo "Interior temp: " . $hvac->getTempInCar() . "°C\n";
-            }
-        } catch (BydException $e) {
-            echo "HVAC error: " . $e->getMessage() . "\n";
-        }
-        echo "\n";
-
-        // GPS
-        echo "--- GPS Info ---\n";
-        try {
-            $gps = $client->getGpsInfo($vin);
-            if ($gps->getLatitude() !== null) {
-                echo "Location: " . $gps->getLatitude() . ", " . $gps->getLongitude() . "\n";
-                echo "Speed: " . $gps->getSpeed() . " km/h\n";
-            } else {
-                echo "GPS: no data available\n";
-            }
-        } catch (BydException $e) {
-            echo "GPS error: " . $e->getMessage() . "\n";
-        }
-        echo "\n";
-
-        // Charging
-        echo "--- Charging Status ---\n";
-        try {
-            $charging = $client->getChargingStatus($vin);
-            echo "Charging state: " . $charging->getChargingState()->name . "\n";
-        } catch (BydException $e) {
-            echo "Charging error: " . $e->getMessage() . "\n";
-        }
-        echo "\n";
-
-        // Energy
-        echo "--- Energy Consumption ---\n";
-        try {
-            $energy = $client->getEnergyConsumption($vin);
-            echo "Total mileage: " . ($energy->getTotalMileage() ?? 'n/a') . ' ' . ($energy->getMileageUnit() ?? 'km') . "\n";
-            echo "Lifetime average: " . ($energy->getCumulativeAverageEvConsumption() ?? 'n/a') . ' ' . ($energy->getCumulativeEvUnit() ?? 'kWh/100 km') . "\n";
-            echo "Last 50 km average: " . ($energy->getLast50kmAverageEvConsumption() ?? 'n/a') . ' ' . ($energy->getLast50kmEvUnit() ?? 'kWh/100 km') . "\n";
-            echo "Last 50 km energy: " . ($energy->getLast50kmEvConsumption() ?? 'n/a') . ' ' . ($energy->getLast50kmEvValueUnit() ?? 'kWh') . "\n";
-        } catch (BydException $e) {
-            echo "Energy error: " . $e->getMessage() . "\n";
-        }
-        echo "\n";
+        exit(0);
     }
 
-} catch (BydException $e) {
-    echo "BYD API Error: " . $e->getMessage() . "\n";
-    if ($e->getCode()) {
-        echo "Error Code: " . $e->getCode() . "\n";
+    echo 'Vehicles: '.count($vehicles)."\n";
+
+    foreach ($vehicles as $index => $vehicle) {
+        $vin = $vehicle->vin;
+        $energyType = EnergyType::tryFrom($vehicle->energyType);
+
+        echo "\n============================================================\n";
+        echo sprintf("Vehicle #%d: %s %s\n", $index + 1, $vehicle->brandName, $vehicle->modelName);
+        echo "============================================================\n";
+        echo "VIN: {$vin->value}\n";
+        echo 'Alias: '.value($vehicle->alias)."\n";
+        echo 'Plate: '.value($vehicle->plate)."\n";
+        echo 'Energy type: '.($energyType instanceof EnergyType ? $energyType->name : $vehicle->energyType)."\n";
+        echo 'Default vehicle: '.($vehicle->isDefault() ? 'yes' : 'no')."\n";
+        echo 'Reported mileage: '.value($vehicle->totalMileage, ' km')."\n";
+
+        section('Realtime telemetry', function () use ($client, $vin): void {
+            $telemetry = $client->telemetry($vin)->realtime();
+
+            echo "Online: {$telemetry->onlineState->name}\n";
+            echo "Charging: {$telemetry->chargingState->name}\n";
+            echo 'Battery: '.value($telemetry->stateOfCharge, '%')."\n";
+            echo 'Remaining range: '.value($telemetry->remainingRange, ' km')."\n";
+            echo 'Total mileage: '.value($telemetry->totalMileage, ' km')."\n";
+            echo 'Speed: '.value($telemetry->speed, ' km/h')."\n";
+            echo 'Interior temperature: '.value($telemetry->interiorTemperature, ' °C')."\n";
+            optional('Exterior temperature', $telemetry->exteriorTemperature, ' °C');
+            echo 'Doors: '.($telemetry->isAnyDoorOpen() ? 'open' : 'closed')."\n";
+            echo 'Windows: '.($telemetry->isAnyWindowOpen() ? 'open' : 'closed')."\n";
+            echo "Front doors: {$telemetry->leftFrontDoor->name} / {$telemetry->rightFrontDoor->name}\n";
+            echo "Rear doors: {$telemetry->leftRearDoor->name} / {$telemetry->rightRearDoor->name}\n";
+            echo "Front locks: {$telemetry->leftFrontLock->name} / {$telemetry->rightFrontLock->name}\n";
+            echo "Rear locks: {$telemetry->leftRearLock->name} / {$telemetry->rightRearLock->name}\n";
+            $tirePressure = [$telemetry->leftFrontTirePressure, $telemetry->rightFrontTirePressure, $telemetry->leftRearTirePressure, $telemetry->rightRearTirePressure];
+            if (!in_array(null, $tirePressure, true)) {
+                echo 'Tire pressure (FL/FR/RL/RR): '.implode(' / ', $tirePressure)." kPa\n";
+            }
+
+            if ($telemetry->hoursToFull !== null || $telemetry->minutesToFull !== null) {
+                echo 'Time to full: '.value($telemetry->hoursToFull, ' h').' '.value($telemetry->minutesToFull, ' min')."\n";
+            }
+        });
+
+        section('GPS position', function () use ($client, $vin): void {
+            $position = $client->telemetry($vin)->gps();
+
+            echo 'Coordinates: '.value($position->latitude).' / '.value($position->longitude)."\n";
+            optional('Altitude', $position->altitude, ' m');
+            optional('Speed', $position->speed, ' km/h');
+            optional('Heading', $position->heading ?? $position->direction, '°');
+            optional('Position type', $position->positionType);
+        });
+
+        section('Climate', function () use ($client, $vin): void {
+            $climate = $client->climate($vin)->status();
+
+            echo 'Power: '.($climate->isOn() ? 'on' : 'off')."\n";
+            echo "Mode: {$climate->mode->name}\n";
+            echo 'Interior temperature: '.value($climate->interiorTemperature, ' °C')."\n";
+            echo 'Exterior temperature: '.value($climate->exteriorTemperature, ' °C')."\n";
+            echo 'Driver target: '.value($climate->driverTemperature, ' °C')."\n";
+            echo 'Passenger target: '.value($climate->passengerTemperature, ' °C')."\n";
+            echo "Driver seat heat/ventilation: {$climate->driverSeatHeat->name} / {$climate->driverSeatVentilation->name}\n";
+            echo "Passenger seat heat/ventilation: {$climate->passengerSeatHeat->name} / {$climate->passengerSeatVentilation->name}\n";
+            echo 'Particulate matter: '.value($climate->particulateMatter)."\n";
+        });
+
+        section('Charging', function () use ($client, $vin): void {
+            $charging = $client->charging($vin);
+            $status = $charging->status();
+            $schedule = $charging->schedule();
+
+            echo "State: {$status->state->name}\n";
+            echo 'Battery: '.value($status->stateOfCharge, '%')."\n";
+            optional('Power', $status->chargingPower ?? $status->chargerPower, ' kW');
+            optional('Voltage', $status->chargerVoltage, ' V');
+            optional('Current', $status->chargerCurrent, ' A');
+            optional('Battery temperature', $status->batteryTemperature, ' °C');
+            echo "Connection: {$status->connectionState->name}\n";
+            if ($status->hoursToFull !== null || $status->minutesToFull !== null) {
+                echo 'Time to full: '.value($status->hoursToFull, ' h').' '.value($status->minutesToFull, ' min')."\n";
+            }
+            echo 'Target SOC: '.value($status->electricSocLimit ?? $status->hybridSocLimit, '%')."\n";
+
+            $scheduleState = $schedule->isEnabled();
+            echo 'Smart charging: '.($scheduleState === null ? 'unknown' : ($scheduleState ? 'enabled' : 'disabled'))."\n";
+            echo 'Schedule: '.value($schedule->startTime).'–'.value($schedule->endTime)."\n";
+            echo 'Charge mode: '.value($schedule->chargeWay)."\n";
+        });
+
+        section('Energy consumption', function () use ($client, $vin): void {
+            $energy = $client->telemetry($vin)->energyConsumption();
+
+            $cumulative = $energy->cumulative;
+            $recent = $energy->recent;
+            $totalMileage = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->totalMileage : $energy->totalMileage;
+            $mileageUnit = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->mileageUnit : $energy->mileageUnit;
+            $cumulativeAverage = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->averageElectricConsumption : $energy->cumulativeAverageEvConsumption;
+            $cumulativeUnit = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->electricConsumptionUnit : $energy->cumulativeEvUnit;
+            $recentAverage = $recent instanceof RecentEnergyConsumption ? $recent->averageElectricConsumption : $energy->recentAverage;
+            $recentAverageUnit = $recent instanceof RecentEnergyConsumption ? $recent->averageElectricConsumptionUnit : null;
+            $recentEnergy = $recent instanceof RecentEnergyConsumption ? $recent->electricConsumption : $energy->recent50Km;
+            $recentEnergyUnit = $recent instanceof RecentEnergyConsumption ? $recent->electricConsumptionUnit : 'kWh';
+
+            echo 'Total mileage: '.value($totalMileage, ' '.($mileageUnit ?? 'km'))."\n";
+            optional('Electric mileage', $energy->electricMileage, ' km');
+            optional('Fuel mileage', $energy->fuelMileage, ' km');
+            optional('Total energy', $energy->totalEnergy, ' kWh');
+            echo 'Cumulative EV average: '.value($cumulativeAverage, ' '.($cumulativeUnit ?? ''))."\n";
+            echo 'Recent EV average: '.value($recentAverage, ' '.($recentAverageUnit ?? ''))."\n";
+            echo 'Recent EV energy: '.value($recentEnergy, ' '.($recentEnergyUnit ?? 'kWh'))."\n";
+
+            if ($energy->vehicleGraph !== null) {
+                echo 'Vehicle history: '.implode(', ', $energy->vehicleGraph->values).' '.($energy->vehicleGraph->unit ?? '')."\n";
+            }
+
+            if ($energy->modelGraph !== null) {
+                echo 'Model history: '.implode(', ', $energy->modelGraph->values).' '.($energy->modelGraph->unit ?? '')."\n";
+            }
+            optional('CO₂ saved', $energy->co2Saved);
+        });
+
+        section('Push notifications', function () use ($client, $vin): void {
+            $notifications = $client->notifications($vin)->state();
+            $enabled = $notifications->isEnabled();
+
+            echo 'Vehicle status notifications: '.($enabled === null ? 'not configured' : ($enabled ? 'enabled' : 'disabled'))."\n";
+            foreach ($notifications->switches as $switch) {
+                echo sprintf("Type %d: %s\n", $switch->type, $switch->isEnabled() ? 'enabled' : 'disabled');
+            }
+        });
     }
-} catch (Exception $e) {
-    echo "General Error: " . $e->getMessage() . "\n";
-    echo $e->getTraceAsString() . "\n";
+} catch (BydException $exception) {
+    fwrite(STDERR, 'BYD API error: '.$exception->getMessage()."\n");
+    exit(1);
 }
+
+/*
+ * Commands below change the vehicle state and are intentionally not executed.
+ * Copy only the command you actually need:
+ *
+ * $client->controls($vin)->verifyPin();
+ * $client->controls($vin)->lock();
+ * $client->controls($vin)->unlock();
+ * $client->controls($vin)->flashLights();
+ * $client->controls($vin)->findCar();
+ * $client->controls($vin)->openWindows();
+ * $client->controls($vin)->closeWindows();
+ * $client->controls($vin)->openTrunk();
+ * $client->controls($vin)->closeTrunk();
+ *
+ * $client->climate($vin)->start(new \Byd\ApiClient\Dto\Request\ClimateStartRequest(
+ *     temperature: 22.0,
+ *     durationMinutes: 15,
+ * ));
+ * $client->climate($vin)->stop();
+ *
+ * $client->charging($vin)->setSmartCharging(true);
+ * $client->charging($vin)->start();
+ * $client->settings($vin)->rename('My BYD');
+ */
