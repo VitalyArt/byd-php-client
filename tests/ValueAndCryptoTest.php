@@ -38,6 +38,19 @@ final class ValueAndCryptoTest extends TestCase
         self::assertSame('{"hello":"world"}', $crypto->decrypt($encrypted, $key));
     }
 
+    public function testAesDecryptAcceptsServerEncryptedEmptyPayload(): void
+    {
+        $crypto = new Cryptography();
+        $keyHex = $crypto->md5('encryption-token');
+        $key = hex2bin($keyHex);
+        self::assertIsString($key);
+
+        $ciphertext = openssl_encrypt('', 'AES-128-CBC', $key, OPENSSL_RAW_DATA, str_repeat("\0", 16));
+        self::assertIsString($ciphertext);
+
+        self::assertSame('', $crypto->decrypt(bin2hex($ciphertext), $keyHex));
+    }
+
     public function testBangcleEnvelopeRoundTrip(): void
     {
         $codec = new BangcleCodec(dirname(__DIR__).'/data/bangcle_tables.bin');

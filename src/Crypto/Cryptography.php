@@ -85,8 +85,12 @@ final class Cryptography
         $key = $this->hex($keyHex, 'key');
         $ciphertext = $this->hex($cipherHex, 'ciphertext');
         $plaintext = openssl_decrypt($ciphertext, 'AES-'.(strlen($key) * 8).'-CBC', $key, OPENSSL_RAW_DATA, self::ZERO_IV);
-        if ($plaintext === false || $plaintext === '') {
+        if ($plaintext === false) {
             throw new ProtocolException('AES decryption failed.');
+        }
+
+        if ($plaintext === '') {
+            return '';
         }
 
         $padding = ord($plaintext[strlen($plaintext) - 1]);

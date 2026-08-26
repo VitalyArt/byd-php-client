@@ -98,7 +98,12 @@ final readonly class ProtocolClient
         }
 
         try {
-            $decoded = json_decode($this->cryptography->decrypt($encryptedResponse, $contentKey), true, flags: JSON_THROW_ON_ERROR);
+            $plaintext = $this->cryptography->decrypt($encryptedResponse, $contentKey);
+            if (trim($plaintext) === '') {
+                return [];
+            }
+
+            $decoded = json_decode($plaintext, true, flags: JSON_THROW_ON_ERROR);
         } catch (Throwable $exception) {
             throw new ProtocolException("Unable to decode response from {$endpoint->name}.", $exception->getCode(), previous: $exception);
         }

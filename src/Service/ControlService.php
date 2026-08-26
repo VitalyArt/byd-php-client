@@ -11,8 +11,10 @@ use Byd\ApiClient\Dto\Request\RemoteControlRequest;
 use Byd\ApiClient\Dto\Request\SeatClimateRequest;
 use Byd\ApiClient\Dto\Request\VerifyControlPinRequest;
 use Byd\ApiClient\Dto\Response\CommandResult;
+use Byd\ApiClient\Enum\ApiErrorCode;
 use Byd\ApiClient\Enum\Endpoint;
 use Byd\ApiClient\Enum\RemoteCommand;
+use Byd\ApiClient\Exception\ApiException;
 use Byd\ApiClient\Exception\RemoteControlException;
 use Byd\ApiClient\PollingExecutor;
 use Byd\ApiClient\ProtocolClient;
@@ -20,6 +22,7 @@ use Byd\ApiClient\Serialization\DtoSerializer;
 use Byd\ApiClient\Serialization\ProtocolPayloadNormalizer;
 use Byd\ApiClient\Value\Vin;
 
+use function in_array;
 use function is_string;
 use function strlen;
 
@@ -31,7 +34,18 @@ final readonly class ControlService
 
     public function verifyPin(?string $pin = null): CommandResult
     {
-        $raw = $this->protocol->request(Endpoint::VERIFY_PIN, new VerifyControlPinRequest($this->vin, $this->password($pin)));
+        try {
+            $raw = $this->protocol->request(Endpoint::VERIFY_PIN, new VerifyControlPinRequest($this->vin, $this->password($pin)));
+        } catch (ApiException $exception) {
+            if (!in_array($exception->knownCode, [ApiErrorCode::INVALID_CONTROL_PIN, ApiErrorCode::CONTROL_PIN_LOCKED, ApiErrorCode::CONTROL_PIN_REQUIRED], true)) {
+                throw $exception;
+            }
+
+            $raw = [
+                'code' => $exception->apiCode,
+                'message' => $exception->getMessage(),
+            ];
+        }
 
         return $this->serializer->denormalize($raw, CommandResult::class);
     }
