@@ -31,7 +31,7 @@ final readonly class TelemetryService
     public function realtime(): VehicleTelemetry
     {
         $vehicle = $this->vehicles->get($this->vin);
-        $energy = EnergyType::fromVehicleLabel($vehicle instanceof \Byd\ApiClient\Dto\Response\Vehicle ? $vehicle->energyType : 'EV');
+        $energy = EnergyType::fromVehicleLabel($vehicle->energyType ?? 'EV');
         $serial = null;
 
         return $this->polling->until(
@@ -66,8 +66,8 @@ final readonly class TelemetryService
     public function energyConsumption(): EnergyConsumption
     {
         $vehicle = $this->vehicles->get($this->vin);
-        $label = $vehicle instanceof \Byd\ApiClient\Dto\Response\Vehicle ? $vehicle->energyType : 'EV';
-        $model = $vehicle instanceof \Byd\ApiClient\Dto\Response\Vehicle ? $vehicle->externalModelType : null;
+        $label = $vehicle->energyType ?? 'EV';
+        $model = $vehicle?->externalModelType;
         $raw = $this->protocol->request(Endpoint::ENERGY, new EnergyRequest($this->vin, PowerType::fromVehicleLabel($label), model: $model));
 
         return $this->serializer->denormalize($raw, EnergyConsumption::class);

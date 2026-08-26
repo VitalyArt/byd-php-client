@@ -6,8 +6,6 @@ require dirname(__DIR__).'/vendor/autoload.php';
 
 use Byd\ApiClient\BydClient;
 use Byd\ApiClient\Config\EnvironmentConfigLoader;
-use Byd\ApiClient\Dto\Response\CumulativeEnergyConsumption;
-use Byd\ApiClient\Dto\Response\RecentEnergyConsumption;
 use Byd\ApiClient\Enum\EnergyType;
 use Byd\ApiClient\Exception\BydException;
 
@@ -62,7 +60,7 @@ try {
         echo "VIN: {$vin->value}\n";
         echo 'Alias: '.value($vehicle->alias)."\n";
         echo 'Plate: '.value($vehicle->plate)."\n";
-        echo 'Energy type: '.($energyType instanceof EnergyType ? $energyType->name : $vehicle->energyType)."\n";
+        echo 'Energy type: '.($energyType?->name ?? $vehicle->energyType)."\n";
         echo 'Default vehicle: '.($vehicle->isDefault() ? 'yes' : 'no')."\n";
         echo 'Reported mileage: '.value($vehicle->totalMileage, ' km')."\n";
 
@@ -145,14 +143,14 @@ try {
 
             $cumulative = $energy->cumulative;
             $recent = $energy->recent;
-            $totalMileage = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->totalMileage : $energy->totalMileage;
-            $mileageUnit = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->mileageUnit : $energy->mileageUnit;
-            $cumulativeAverage = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->averageElectricConsumption : $energy->cumulativeAverageEvConsumption;
-            $cumulativeUnit = $cumulative instanceof CumulativeEnergyConsumption ? $cumulative->electricConsumptionUnit : $energy->cumulativeEvUnit;
-            $recentAverage = $recent instanceof RecentEnergyConsumption ? $recent->averageElectricConsumption : $energy->recentAverage;
-            $recentAverageUnit = $recent instanceof RecentEnergyConsumption ? $recent->averageElectricConsumptionUnit : null;
-            $recentEnergy = $recent instanceof RecentEnergyConsumption ? $recent->electricConsumption : $energy->recent50Km;
-            $recentEnergyUnit = $recent instanceof RecentEnergyConsumption ? $recent->electricConsumptionUnit : 'kWh';
+            $totalMileage = $cumulative?->totalMileage ?? $energy->totalMileage;
+            $mileageUnit = $cumulative?->mileageUnit ?? $energy->mileageUnit;
+            $cumulativeAverage = $cumulative?->averageElectricConsumption ?? $energy->cumulativeAverageEvConsumption;
+            $cumulativeUnit = $cumulative?->electricConsumptionUnit ?? $energy->cumulativeEvUnit;
+            $recentAverage = $recent?->averageElectricConsumption ?? $energy->recentAverage;
+            $recentAverageUnit = $recent?->averageElectricConsumptionUnit;
+            $recentEnergy = $recent?->electricConsumption ?? $energy->recent50Km;
+            $recentEnergyUnit = $recent?->electricConsumptionUnit ?? 'kWh';
 
             echo 'Total mileage: '.value($totalMileage, ' '.($mileageUnit ?? 'km'))."\n";
             optional('Electric mileage', $energy->electricMileage, ' km');
