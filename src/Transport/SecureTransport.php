@@ -57,7 +57,7 @@ class SecureTransport implements TransportInterface
                 'headers' => [
                     'accept-encoding' => 'identity',
                     'content-type' => 'application/json; charset=UTF-8',
-                    'user-agent' => 'BYD/3.2.2 (iPhone; iOS 15.0; Scale/3.00)',
+                    'user-agent' => 'okhttp/4.12.0',
                 ],
                 'body' => $body,
             ]);

@@ -19,6 +19,8 @@ use function sprintf;
  */
 class Login
 {
+    private const APP_NAME = 'pyBYD+0.0.73';
+
     /**
      * Build the common outer fields from device profile.
      *
@@ -52,6 +54,8 @@ class Login
         $device = $config->getDevice();
 
         $inner = [
+            'agreeStatus' => '0',
+            'agreementType' => '[1,2]',
             'appInnerVersion' => $config->getAppInnerVersion(),
             'appVersion' => $config->getAppVersion(),
             'deviceName' => $device->getMobileBrand() . $device->getMobileModel(),
@@ -77,6 +81,7 @@ class Login
         $passwordMd5 = Hashing::md5Hex($config->getPassword());
 
         $signFields = array_merge($inner, [
+            'appName' => self::APP_NAME,
             'countryCode' => $config->getCountryCode(),
             'functionType' => 'pwdLogin',
             'identifier' => $config->getUsername(),
@@ -88,6 +93,7 @@ class Login
         $sign = Hashing::sha1Mixed(Signing::buildSignString($signFields, $passwordMd5));
 
         $outer = array_merge([
+            'appName' => self::APP_NAME,
             'countryCode' => $config->getCountryCode(),
             'encryData' => $encryData,
             'functionType' => 'pwdLogin',
@@ -99,8 +105,9 @@ class Login
             'reqTimestamp' => $reqTimestamp,
             'sign' => $sign,
             'signKey' => $config->getPassword(),
+        ], self::commonOuterFields($config), [
             'serviceTime' => $serviceTime,
-        ], self::commonOuterFields($config));
+        ]);
 
         $outer['checkcode'] = Hashing::computeCheckcode($outer);
 

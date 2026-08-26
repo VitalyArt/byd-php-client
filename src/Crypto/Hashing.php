@@ -79,8 +79,8 @@ class Hashing
      */
     public static function computeCheckcode(array $payload): string
     {
-        // Create JSON string with sorted keys and no extra spaces
-        ksort($payload);
+        // Python's json.dumps preserves insertion order. The API includes
+        // that exact order in the checkcode input, so do not sort here.
         $jsonStr = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         $md5 = md5($jsonStr);

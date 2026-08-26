@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Config;
 
+use Byd\ApiClient\Crypto\Hashing;
+
 use function is_array;
 
 /**
@@ -31,6 +33,25 @@ class BydConfig
         private float $mqttTimeout = 10.0,
         private ?DeviceProfile $device = new DeviceProfile()
     ) {
+        // Keep the PHP defaults in sync with pyBYD. The server expects the
+        // account-derived IMEI hash, not the all-zero placeholder.
+        $this->device ??= new DeviceProfile();
+        if ($this->device->getImeiMd5() === '00000000000000000000000000000000') {
+            $this->device = new DeviceProfile(
+                $this->device->getOstype(),
+                $this->device->getImei(),
+                $this->device->getMac(),
+                $this->device->getModel(),
+                $this->device->getSdk(),
+                $this->device->getMod(),
+                Hashing::md5Hex($this->username),
+                $this->device->getMobileBrand(),
+                $this->device->getMobileModel(),
+                $this->device->getDeviceType(),
+                $this->device->getNetworkType(),
+                $this->device->getOsVersion()
+            );
+        }
     }
 
     public static function fromEnv(array $overrides = []): self
@@ -45,7 +66,7 @@ class BydConfig
             $device = $deviceOverrides;
         } elseif (is_array($deviceOverrides)) {
             $device = new DeviceProfile(
-                $deviceOverrides['ostype'] ?? '15',
+                $deviceOverrides['ostype'] ?? 'and',
                 $deviceOverrides['imei'] ?? 'BANGCLE01234',
                 $deviceOverrides['mac'] ?? '00:00:00:00:00:00',
                 $deviceOverrides['model'] ?? 'POCO F1',

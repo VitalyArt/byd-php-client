@@ -10,7 +10,9 @@ namespace Byd\ApiClient\Config;
 class DeviceProfile
 {
     public function __construct(
-        private string $osType = '15',
+        // `ostype` is the outer device identifier; the inner login field
+        // `osType` is separately sent as the Android OS version (`15`).
+        private string $osType = 'and',
         private string $imei = 'BANGCLE01234',
         private string $mac = '00:00:00:00:00:00',
         private string $model = 'POCO F1',
