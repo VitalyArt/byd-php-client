@@ -119,6 +119,17 @@ final class DtoSerializer
             }
         }
 
+        // Some vehicle-list responses return image URLs only inside cfPic.
+        // Flatten those legacy fields so Vehicle DTO consumers get the same
+        // mainImageUrl/imageSetUrl values regardless of response shape.
+        if (is_array($data['cfPic'] ?? null)) {
+            foreach (['picMainUrl', 'picSetUrl'] as $field) {
+                if (!array_key_exists($field, $data) && array_key_exists($field, $data['cfPic'])) {
+                    $data[$field] = $data['cfPic'][$field];
+                }
+            }
+        }
+
         $chargingState = $data['chargingState'] ?? null;
         if (isset($data['chargeState']) && is_numeric($data['chargeState']) && (!is_numeric($chargingState) || (float) $chargingState < 0.0)) {
             $data['chargingState'] = $data['chargeState'];

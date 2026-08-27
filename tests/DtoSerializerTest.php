@@ -78,6 +78,20 @@ final class DtoSerializerTest extends TestCase
         self::assertTrue(new ReflectionClass($dto)->isReadOnly());
     }
 
+    public function testVehicleImageUrlsAreFlattenedFromCfPic(): void
+    {
+        $dto = $this->serializer->denormalize([
+            'vin' => $this->vin->value,
+            'cfPic' => [
+                'picMainUrl' => 'https://example.com/main.png',
+                'picSetUrl' => 'https://example.com/set.png',
+            ],
+        ], Vehicle::class);
+
+        self::assertSame('https://example.com/main.png', $dto->mainImageUrl);
+        self::assertSame('https://example.com/set.png', $dto->imageSetUrl);
+    }
+
     public function testZeroFilledRealtimeResponseIsNotReady(): void
     {
         $dto = $this->serializer->denormalize([
