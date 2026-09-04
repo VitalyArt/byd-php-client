@@ -11,8 +11,8 @@ final readonly class ProtocolOptions
     public function __construct(
         public string $baseUrl = 'https://dilinkappoversea-eu.byd.auto',
         public string $appName = 'pyBYD+0.0.73',
-        public string $appVersion = '3.2.2',
-        public string $appInnerVersion = '322',
+        public string $appVersion = '3.5.0',
+        public string $appInnerVersion = '352',
         public string $softType = '0',
         public string $tboxVersion = '3',
         public bool $automaticLogin = true,

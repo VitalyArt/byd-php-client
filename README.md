@@ -46,6 +46,33 @@ All response objects are immutable `readonly` DTOs with public typed properties.
 - `$client->notifications($vin)` — read and change push state.
 - `$client->settings($vin)` — rename a vehicle.
 
+## Wear OS authorization
+
+The package also exposes the independently authenticated watch protocol reconstructed from BYD AUTO for Wear OS 1.2.0. Persist the generated pseudo IMEI: changing it makes the backend see a different watch.
+
+```php
+use Byd\ApiClient\BydWatchClient;
+use Byd\ApiClient\Config\Locale;
+use Byd\ApiClient\Config\WatchClientConfig;
+use Byd\ApiClient\Config\WatchDeviceProfile;
+
+$device = WatchDeviceProfile::generate('SAMSUNG', 'SM-R890');
+// Persist $device->watchImei and pass it to WatchDeviceProfile next time.
+
+$watch = new BydWatchClient(new WatchClientConfig(
+    device: $device,
+    locale: new Locale('UZ', 'ru', 'Asia/Tashkent'),
+));
+
+$watch->synchronizeServerTime();
+$login = $watch->createQrSession();
+// Render $login->qrPayload as a QR code and scan it in the mobile BYD app.
+$token = $watch->authorize($login); // Polls every 3 s, for at most 150 s.
+$vehicle = $watch->vehicle($token->token);
+```
+
+For event-loop or UI integrations, call `checkQrSession()` yourself instead of the synchronous `authorize()` helper. The QR states are `WAITING_FOR_SCAN`, `WAITING_FOR_CONFIRMATION`, `APPROVED`, `INVALIDATED`, and `EXPIRED`. Watch tokens, the control password, and Bluetooth `dkey` are secrets and must not be logged.
+
 Request DTO constructors validate invariants before a network request. These include `ClimateStartRequest`, `ClimateScheduleCommand`, `ChargingScheduleRequest`, `SeatClimateRequest` and `BatteryHeatRequest`.
 
 ## Configuration and dependency injection
