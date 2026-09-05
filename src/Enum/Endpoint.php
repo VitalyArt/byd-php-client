@@ -24,4 +24,9 @@ enum Endpoint: string
     case CHARGING_SAVE = '/control/smartCharge/saveOrUpdate';
     case CHARGING_RESULT = '/control/smartCharge/changeResult';
     case VEHICLE_RENAME = '/control/vehicle/modifyAutoAlias';
+    case OTA_VERSION = '/control/otaUpgrade/getOtaVersion';
+    case OTA_BOOKING = '/control/otaUpgrade/bookingUpgrade';
+    case OTA_CANCEL_BOOKING = '/control/otaUpgrade/cancelUpgrade';
+    case OTA_UPGRADE = '/control/otaUpgrade/upgradeOta';
+    case OTA_SYNC_AUTO_UPGRADE = '/control/otaUpgrade/syncAutoUpgrade';
 }

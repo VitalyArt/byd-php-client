@@ -14,16 +14,14 @@ composer require byd/api-client
 
 ```php
 use Byd\ApiClient\BydClient;
-use Byd\ApiClient\Config\ClientConfig;
-use Byd\ApiClient\Config\Credentials;
+use Byd\ApiClient\Enum\CountryCode;
 
-$client = new BydClient(new ClientConfig(
-    credentials: new Credentials(
-        username: 'name@example.com',
-        password: 'secret',
-        controlPin: '1234',
-    ),
-));
+$client = new BydClient(
+    username: 'name@example.com',
+    password: 'secret',
+    countryCode: CountryCode::UZ,
+    controlPin: '1234',
+);
 
 $vehicle = $client->vehicles()->all()[0];
 
@@ -31,6 +29,7 @@ $telemetry = $client->telemetry($vehicle->vin)->realtime();
 $position = $client->telemetry($vehicle->vin)->gps();
 $climate = $client->climate($vehicle->vin)->status();
 $charging = $client->charging($vehicle->vin)->status();
+$ota = $client->ota($vehicle->vin)->status();
 $client->controls($vehicle->vin)->lock();
 ```
 
@@ -45,6 +44,7 @@ All response objects are immutable `readonly` DTOs with public typed properties.
 - `$client->controls($vin)` — PIN verification, locks, lights, windows, trunk, seats and battery heating.
 - `$client->notifications($vin)` — read and change push state.
 - `$client->settings($vin)` — rename a vehicle.
+- `$client->ota($vin)` — check the installed and available vehicle OTA versions.
 
 ## Wear OS authorization
 
@@ -55,13 +55,14 @@ use Byd\ApiClient\BydWatchClient;
 use Byd\ApiClient\Config\Locale;
 use Byd\ApiClient\Config\WatchClientConfig;
 use Byd\ApiClient\Config\WatchDeviceProfile;
+use Byd\ApiClient\Enum\CountryCode;
 
 $device = WatchDeviceProfile::generate('SAMSUNG', 'SM-R890');
 // Persist $device->watchImei and pass it to WatchDeviceProfile next time.
 
 $watch = new BydWatchClient(new WatchClientConfig(
     device: $device,
-    locale: new Locale('UZ', 'ru', 'Asia/Tashkent'),
+    locale: new Locale(CountryCode::UZ, 'ru', 'Asia/Tashkent'),
 ));
 
 $watch->synchronizeServerTime();
@@ -77,7 +78,23 @@ Request DTO constructors validate invariants before a network request. These inc
 
 ## Configuration and dependency injection
 
-`ClientConfig` groups credentials, locale, device profile, protocol settings and retry/polling policies. `EnvironmentConfigLoader` is the only environment-input adapter.
+`ClientConfig` groups credentials, locale, device profile, protocol settings and retry/polling policies. You can create a client directly without environment variables; the endpoint is derived from `CountryCode`.
+
+For accounts outside the European node, select the API host using BYD's country-to-node table:
+
+```php
+use Byd\ApiClient\Enum\CountryCode;
+
+$client = new BydClient(
+    username: 'name@example.com',
+    password: 'secret',
+    countryCode: CountryCode::TH,
+    language: 'en',
+    timeZone: 'Asia/Bangkok',
+);
+```
+
+`EnvironmentConfigLoader` creates a `BydClient` from `BYD_USERNAME`, `BYD_PASSWORD`, optional `BYD_CONTROL_PIN`, `BYD_COUNTRY_CODE`, `BYD_LANGUAGE` and `BYD_TIME_ZONE`; `BYD_BASE_URL` is not used. The resolver deliberately maps countries through BYD's regional nodes: for example Thailand uses the Singapore endpoint, while Norway uses the European endpoint.
 
 Guzzle is used by default. A custom PSR-18 client, PSR-17 request/stream factory, logger, clock, sleeper, nonce generator, secure transport or DTO serializer can be injected through `BydClient`.
 

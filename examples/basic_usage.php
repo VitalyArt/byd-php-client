@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
-use Byd\ApiClient\BydClient;
 use Byd\ApiClient\Config\EnvironmentConfigLoader;
 use Byd\ApiClient\Enum\EnergyType;
 use Byd\ApiClient\Exception\BydException;
@@ -34,12 +33,12 @@ function optional(string $label, int|float|string|null $value, string $unit = ''
 }
 
 $environment = [];
-foreach (['BYD_USERNAME', 'BYD_PASSWORD', 'BYD_CONTROL_PIN', 'BYD_BASE_URL', 'BYD_COUNTRY_CODE', 'BYD_LANGUAGE', 'BYD_TIME_ZONE'] as $name) {
+foreach (['BYD_USERNAME', 'BYD_PASSWORD', 'BYD_CONTROL_PIN', 'BYD_COUNTRY_CODE', 'BYD_LANGUAGE', 'BYD_TIME_ZONE'] as $name) {
     $environment[$name] = getenv($name);
 }
 
 try {
-    $client = new BydClient((new EnvironmentConfigLoader())->load($environment));
+    $client = (new EnvironmentConfigLoader())->load($environment);
     $vehicles = $client->vehicles()->all();
 
     if ($vehicles === []) {

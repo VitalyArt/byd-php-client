@@ -49,7 +49,7 @@ final readonly class AuthenticationService
         $encrypted = $this->cryptography->encrypt(json_encode($innerFields, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $this->cryptography->loginKey($credentials->password));
         $signFields = array_merge($innerFields, [
             'appName' => $protocol->appName,
-            'countryCode' => $this->config->locale->countryCode,
+            'countryCode' => $this->config->locale->countryCode->value,
             'functionType' => 'pwdLogin',
             'identifier' => $credentials->username,
             'identifierType' => '0',
@@ -57,7 +57,7 @@ final readonly class AuthenticationService
             'reqTimestamp' => $timestamp,
         ]);
         $signature = $this->cryptography->sign($signFields, $this->cryptography->md5($credentials->password));
-        $arguments = [$protocol->appName, $this->config->locale->countryCode, $encrypted, 'pwdLogin', $credentials->username, '0', $imeiHash, '1', $this->config->locale->language, $timestamp, $signature, $credentials->password, $device->osType, $device->imei, $device->mac, $device->model, $device->sdk, $device->manufacturer, $timestamp];
+        $arguments = [$protocol->appName, $this->config->locale->countryCode->value, $encrypted, 'pwdLogin', $credentials->username, '0', $imeiHash, '1', $this->config->locale->language, $timestamp, $signature, $credentials->password, $device->osType, $device->imei, $device->mac, $device->model, $device->sdk, $device->manufacturer, $timestamp];
         $withoutCheckcode = new LoginEnvelopeRequest(...[...$arguments, '']);
         $request = new LoginEnvelopeRequest(...[...$arguments, $this->cryptography->checkcode(array_slice($this->serializer->normalize($withoutCheckcode), 0, -1, true))]);
         $response = $this->transport->send(Endpoint::LOGIN, $request);

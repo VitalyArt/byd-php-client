@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Byd\ApiClient;
 
 use Byd\ApiClient\Config\ClientConfig;
+use Byd\ApiClient\Config\Credentials;
+use Byd\ApiClient\Config\Locale;
+use Byd\ApiClient\Config\ProtocolOptions;
 use Byd\ApiClient\Contract\NonceGeneratorInterface;
 use Byd\ApiClient\Contract\SecureTransportInterface;
 use Byd\ApiClient\Contract\SleeperInterface;
 use Byd\ApiClient\Crypto\BangcleCodec;
 use Byd\ApiClient\Crypto\Cryptography;
+use Byd\ApiClient\Enum\CountryCode;
 use Byd\ApiClient\Infrastructure\SecureNonceGenerator;
 use Byd\ApiClient\Infrastructure\SystemClock;
 use Byd\ApiClient\Infrastructure\SystemSleeper;
@@ -19,6 +23,7 @@ use Byd\ApiClient\Service\ChargingService;
 use Byd\ApiClient\Service\ClimateService;
 use Byd\ApiClient\Service\ControlService;
 use Byd\ApiClient\Service\NotificationService;
+use Byd\ApiClient\Service\OtaService;
 use Byd\ApiClient\Service\TelemetryService;
 use Byd\ApiClient\Service\VehicleService;
 use Byd\ApiClient\Service\VehicleSettingsService;
@@ -35,9 +40,12 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use SensitiveParameter;
 
 final readonly class BydClient
 {
+    private ClientConfig $config;
+
     private VehicleService $vehicleService;
 
     private ProtocolClient $protocol;
@@ -53,7 +61,14 @@ final readonly class BydClient
     private SessionManager $sessions;
 
     public function __construct(
-        private ClientConfig $config,
+        string $username,
+        #[SensitiveParameter]
+        string $password,
+        CountryCode $countryCode = CountryCode::NL,
+        string $language = 'en',
+        string $timeZone = 'Europe/Amsterdam',
+        #[SensitiveParameter]
+        ?string $controlPin = null,
         ?ClientInterface $httpClient = null,
         (RequestFactoryInterface&StreamFactoryInterface)|null $httpFactory = null,
         ?LoggerInterface $logger = null,
@@ -63,6 +78,11 @@ final readonly class BydClient
         ?SecureTransportInterface $transport = null,
         ?DtoSerializer $serializer = null,
     ) {
+        $this->config = new ClientConfig(
+            credentials: new Credentials($username, $password, $controlPin),
+            locale: new Locale($countryCode, $language, $timeZone),
+            protocol: ProtocolOptions::forCountry($countryCode),
+        );
         $this->serializer = $serializer ?? new DtoSerializer();
         $this->payloadNormalizer = new ProtocolPayloadNormalizer($this->serializer);
         $this->cryptography = new Cryptography();
@@ -70,11 +90,11 @@ final readonly class BydClient
         $sleeper ??= new SystemSleeper();
         $nonceGenerator ??= new SecureNonceGenerator();
         $httpFactory ??= new HttpFactory();
-        $transport ??= new PsrSecureTransport($config, $httpClient ?? new Client(['cookies' => true]), $httpFactory, $httpFactory, new BangcleCodec(dirname(__DIR__).'/data/bangcle_tables.bin'), $this->serializer, $logger ?? new NullLogger());
-        $authentication = new AuthenticationService($config, $transport, $this->serializer, $this->cryptography, $clock, $nonceGenerator);
+        $transport ??= new PsrSecureTransport($this->config, $httpClient ?? new Client(['cookies' => true]), $httpFactory, $httpFactory, new BangcleCodec(dirname(__DIR__).'/data/bangcle_tables.bin'), $this->serializer, $logger ?? new NullLogger());
+        $authentication = new AuthenticationService($this->config, $transport, $this->serializer, $this->cryptography, $clock, $nonceGenerator);
         $this->sessions = new SessionManager($authentication, $clock);
-        $this->protocol = new ProtocolClient($config, $this->sessions, $transport, $this->serializer, $this->payloadNormalizer, $this->cryptography, $clock, $nonceGenerator);
-        $this->polling = new PollingExecutor($config->polling, $clock, $sleeper);
+        $this->protocol = new ProtocolClient($this->config, $this->sessions, $transport, $this->serializer, $this->payloadNormalizer, $this->cryptography, $clock, $nonceGenerator);
+        $this->polling = new PollingExecutor($this->config->polling, $clock, $sleeper);
         $this->vehicleService = new VehicleService($this->protocol, $this->serializer);
     }
 
@@ -121,5 +141,10 @@ final readonly class BydClient
     public function settings(Vin $vin): VehicleSettingsService
     {
         return new VehicleSettingsService($vin, $this->protocol, $this->serializer);
+    }
+
+    public function ota(Vin $vin): OtaService
+    {
+        return new OtaService($vin, $this->config, $this->protocol, $this->serializer, $this->cryptography);
     }
 }

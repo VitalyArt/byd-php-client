@@ -75,13 +75,13 @@ final readonly class ProtocolClient
         $contentKey = $session->contentKey($this->cryptography);
         $encrypted = $this->cryptography->encrypt(json_encode($inner, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $contentKey);
         $signature = $this->cryptography->sign(array_merge($inner, [
-            'countryCode' => $this->config->locale->countryCode,
+            'countryCode' => $this->config->locale->countryCode->value,
             'identifier' => $session->userId,
             'imeiMD5' => $imeiHash,
             'language' => $this->config->locale->language,
             'reqTimestamp' => $timestamp,
         ]), $session->signingKey($this->cryptography));
-        $arguments = [$this->config->locale->countryCode, $encrypted, $session->userId, $imeiHash, $this->config->locale->language, $timestamp, $signature, $device->osType, $device->imei, $device->mac, $device->model, $device->sdk, $device->manufacturer, $timestamp];
+        $arguments = [$this->config->locale->countryCode->value, $encrypted, $session->userId, $imeiHash, $this->config->locale->language, $timestamp, $signature, $device->osType, $device->imei, $device->mac, $device->model, $device->sdk, $device->manufacturer, $timestamp];
         $withoutCheckcode = new ApiEnvelopeRequest(...[...$arguments, '']);
         $outerFields = $this->serializer->normalize($withoutCheckcode);
         unset($outerFields['checkcode']);

@@ -55,7 +55,7 @@ final class WatchProtocolClient
             $watchImei,
             $uuid,
             $status,
-            $this->cryptography->qrPayload($watchImei, $uuid, $this->config->locale->countryCode),
+            $this->cryptography->qrPayload($watchImei, $uuid, $this->config->locale->countryCode->value),
             $createdAt,
         );
     }
@@ -138,12 +138,12 @@ final class WatchProtocolClient
             default => throw new ProtocolException("{$endpoint->name} is not a pre-login endpoint."),
         };
         $metadata = $this->accountMetadata($timestampString);
-        $key = $this->cryptography->md5($this->config->locale->countryCode);
+        $key = $this->cryptography->md5($this->config->locale->countryCode->value);
         $request = new WatchAccountRequest(
             identifier: $metadata['identifier'],
             watchImei: $metadata['watchImei'],
             watchModel: $metadata['watchModel'],
-            sign: $this->cryptography->sign([...$inner, ...$metadata], $this->config->locale->countryCode),
+            sign: $this->cryptography->sign([...$inner, ...$metadata], $this->config->locale->countryCode->value),
             watchBrand: $metadata['watchBrand'],
             requestTimestamp: $metadata['reqTimestamp'],
             watchName: $metadata['watchName'],
@@ -209,7 +209,7 @@ final class WatchProtocolClient
         $device = $this->config->device;
 
         return [
-            'identifier' => $this->config->locale->countryCode,
+            'identifier' => $this->config->locale->countryCode->value,
             'watchImei' => $device->watchImei,
             'watchModel' => $device->model,
             'watchBrand' => $device->brand,
@@ -218,7 +218,7 @@ final class WatchProtocolClient
             'watchAppVersion' => $device->appVersion,
             'watchOs' => $device->watchOs,
             'language' => $this->config->locale->language,
-            'countryCode' => $this->config->locale->countryCode,
+            'countryCode' => $this->config->locale->countryCode->value,
         ];
     }
 
