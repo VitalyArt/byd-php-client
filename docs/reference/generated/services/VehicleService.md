@@ -17,7 +17,7 @@ public function __construct(\Byd\ApiClient\ProtocolClient $protocol, \Byd\ApiCli
 
 ### `all`
 
-Return all vehicles associated with the authenticated account. @return list<Vehicle>
+Return all vehicles associated with the authenticated account.
 
 ```php
 public function all(): array

@@ -163,7 +163,7 @@ function methodSignature(ReflectionMethod $method): string
     $visibility = $method->isPublic() ? 'public ' : '';
     $static = $method->isStatic() ? 'static ' : '';
 
-    return sprintf('%s%sfunction %s(%s): %s', $visibility, $static, $method->getName(), $parameters, typeName($method->getReturnType()));
+    return sprintf('%s%sfunction %s(%s): %s', $visibility, $static, $method->getName(), $parameters, typeName($method->getReturnType(), $method->getDeclaringClass()));
 }
 
 function parameterSignature(ReflectionParameter $parameter): string
@@ -180,13 +180,16 @@ function parameterSignature(ReflectionParameter $parameter): string
     return $type.$reference.$variadic.'$'.$parameter->getName().$default;
 }
 
-function typeName(?ReflectionType $type): string
+function typeName(?ReflectionType $type, ?ReflectionClass $context = null): string
 {
     if ($type === null) {
         return 'mixed';
     }
     if ($type instanceof ReflectionNamedType) {
         $name = $type->getName();
+        if ($context !== null && $name === 'self') {
+            $name = $context->getName();
+        }
         if (!$type->isBuiltin()) {
             $name = '\\'.$name;
         }
