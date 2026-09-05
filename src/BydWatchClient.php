@@ -74,21 +74,25 @@ final readonly class BydWatchClient
         $this->polling = new PollingExecutor($config->polling, $clock, $sleeper);
     }
 
+    /** Synchronize the watch protocol clock with the BYD server. */
     public function synchronizeServerTime(): WatchServerTime
     {
         return $this->protocol->synchronizeServerTime();
     }
 
+    /** Create a QR authorization session for the watch. */
     public function createQrSession(): WatchQrSession
     {
         return $this->protocol->createQrSession();
     }
 
+    /** Check the current status of a QR authorization session. */
     public function checkQrSession(WatchQrSession $session): WatchQrStatusResponse
     {
         return $this->protocol->checkQrSession($session);
     }
 
+    /** Poll a QR session until it reaches a terminal status. */
     public function waitForAuthorization(WatchQrSession $session): WatchQrStatusResponse
     {
         return $this->polling->until(
@@ -97,6 +101,7 @@ final readonly class BydWatchClient
         );
     }
 
+    /** Poll a QR session and exchange an approved session for a watch token. */
     public function authorize(WatchQrSession $session): WatchTokenResponse
     {
         $status = $this->waitForAuthorization($session);
@@ -107,21 +112,25 @@ final readonly class BydWatchClient
         return $this->protocol->gainToken($session);
     }
 
+    /** Exchange an approved QR session for a watch token without polling. */
     public function gainToken(WatchQrSession $session): WatchTokenResponse
     {
         return $this->protocol->gainToken($session);
     }
 
+    /** Retrieve the vehicle configuration associated with a watch token. */
     public function vehicle(WatchTokenInfo $token): WatchVehicleConfiguration
     {
         return $this->protocol->gainVehicle($token);
     }
 
+    /** Retrieve Bluetooth digital-key information for a watch token. */
     public function bluetooth(WatchTokenInfo $token): WatchBluetoothInfo
     {
         return $this->protocol->gainBluetooth($token);
     }
 
+    /** Invalidate the watch token at the BYD backend. */
     public function logout(WatchTokenInfo $token): void
     {
         $this->protocol->logout($token);

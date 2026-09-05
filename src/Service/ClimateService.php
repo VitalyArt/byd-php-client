@@ -23,6 +23,7 @@ final readonly class ClimateService
     {
     }
 
+    /** Fetch the current climate status. */
     public function status(): ClimateStatus
     {
         $raw = $this->protocol->request(Endpoint::HVAC_STATUS, new VehicleRequest($this->vin));
@@ -31,16 +32,19 @@ final readonly class ClimateService
         return $this->serializer->denormalize($raw, ClimateStatus::class);
     }
 
+    /** Start climate control using the requested settings. */
     public function start(ClimateStartRequest $request): CommandResult
     {
         return $this->controls->executeDto(RemoteCommand::START_CLIMATE, $request);
     }
 
+    /** Stop climate control. */
     public function stop(): CommandResult
     {
         return $this->controls->execute(RemoteCommand::STOP_CLIMATE);
     }
 
+    /** Schedule a climate-control window. */
     public function schedule(ClimateScheduleCommand $request): CommandResult
     {
         return $this->controls->executeDto(RemoteCommand::SCHEDULE_CLIMATE, $request);

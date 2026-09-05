@@ -22,6 +22,7 @@ final readonly class NotificationService
     {
     }
 
+    /** Fetch push-notification switch states. */
     public function state(): PushNotificationState
     {
         $raw = $this->protocol->request(Endpoint::PUSH_GET, new VehicleRequest($this->vin));
@@ -35,6 +36,7 @@ final readonly class NotificationService
         return new PushNotificationState($switches, $raw);
     }
 
+    /** Enable or disable vehicle-status push notifications. */
     public function setEnabled(bool $enabled): CommandResult
     {
         return $this->serializer->denormalize($this->protocol->request(Endpoint::PUSH_SET, new PushSwitchRequest($this->vin, PushSwitch::VEHICLE_STATUS_TYPE, $enabled ? '1' : '0')), CommandResult::class);

@@ -17,6 +17,7 @@ final readonly class VehicleSettingsService
     {
     }
 
+    /** Change the user-visible vehicle alias. */
     public function rename(string $name): CommandResult
     {
         return $this->serializer->denormalize($this->protocol->request(Endpoint::VEHICLE_RENAME, new RenameVehicleRequest($this->vin, $name)), CommandResult::class);

@@ -22,7 +22,7 @@ final class VehicleService
     {
     }
 
-    /** @return list<Vehicle> */
+    /** Return all vehicles associated with the authenticated account. @return list<Vehicle> */
     public function all(): array
     {
         $response = $this->protocol->request(Endpoint::VEHICLES, new EmptyRequest());
@@ -38,6 +38,7 @@ final class VehicleService
         return $vehicles;
     }
 
+    /** Find a vehicle by VIN, loading the account list if necessary. */
     public function get(Vin $vin): ?Vehicle
     {
         if (!isset($this->cache[$vin->value])) {

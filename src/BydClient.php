@@ -98,51 +98,61 @@ final readonly class BydClient
         $this->vehicleService = new VehicleService($this->protocol, $this->serializer);
     }
 
+    /** Authenticate the BYD account and refresh the current session. */
     public function authenticate(): void
     {
         $this->sessions->refresh();
     }
 
+    /** Discard the current account session. */
     public function invalidateSession(): void
     {
         $this->sessions->invalidate();
     }
 
+    /** Return the account vehicle service. */
     public function vehicles(): VehicleService
     {
         return $this->vehicleService;
     }
 
+    /** Return telemetry operations for a vehicle VIN. */
     public function telemetry(Vin $vin): TelemetryService
     {
         return new TelemetryService($vin, $this->config, $this->vehicleService, $this->protocol, $this->serializer, $this->polling);
     }
 
+    /** Return climate operations for a vehicle VIN. */
     public function climate(Vin $vin): ClimateService
     {
         return new ClimateService($vin, $this->protocol, $this->serializer, $this->controls($vin));
     }
 
+    /** Return charging operations for a vehicle VIN. */
     public function charging(Vin $vin): ChargingService
     {
         return new ChargingService($vin, $this->protocol, $this->serializer, $this->polling);
     }
 
+    /** Return remote-control operations for a vehicle VIN. */
     public function controls(Vin $vin): ControlService
     {
         return new ControlService($vin, $this->config, $this->protocol, $this->serializer, $this->payloadNormalizer, $this->polling, $this->cryptography);
     }
 
+    /** Return push-notification operations for a vehicle VIN. */
     public function notifications(Vin $vin): NotificationService
     {
         return new NotificationService($vin, $this->protocol, $this->serializer);
     }
 
+    /** Return vehicle settings operations for a vehicle VIN. */
     public function settings(Vin $vin): VehicleSettingsService
     {
         return new VehicleSettingsService($vin, $this->protocol, $this->serializer);
     }
 
+    /** Return OTA operations for a vehicle VIN. */
     public function ota(Vin $vin): OtaService
     {
         return new OtaService($vin, $this->config, $this->protocol, $this->serializer, $this->cryptography);

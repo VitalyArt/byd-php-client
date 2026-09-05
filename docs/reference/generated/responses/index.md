@@ -1,0 +1,27 @@
+# Responses
+
+Generated from the public API in `src/`. Run `php tools/generate-reference.php` to refresh this section.
+
+- [`AuthToken`](AuthToken.md)
+- [`ChargingSchedule`](ChargingSchedule.md)
+- [`ChargingStatus`](ChargingStatus.md)
+- [`ClimateStatus`](ClimateStatus.md)
+- [`CommandResult`](CommandResult.md)
+- [`CumulativeEnergyConsumption`](CumulativeEnergyConsumption.md)
+- [`EnergyConsumption`](EnergyConsumption.md)
+- [`EnergyConsumptionGraph`](EnergyConsumptionGraph.md)
+- [`GpsPosition`](GpsPosition.md)
+- [`OtaUpdateInfo`](OtaUpdateInfo.md)
+- [`OtaUpgradeResult`](OtaUpgradeResult.md)
+- [`PushNotificationState`](PushNotificationState.md)
+- [`PushSwitch`](PushSwitch.md)
+- [`RecentEnergyConsumption`](RecentEnergyConsumption.md)
+- [`Vehicle`](Vehicle.md)
+- [`VehicleTelemetry`](VehicleTelemetry.md)
+- [`WatchBluetoothInfo`](WatchBluetoothInfo.md)
+- [`WatchQrSession`](WatchQrSession.md)
+- [`WatchQrStatusResponse`](WatchQrStatusResponse.md)
+- [`WatchServerTime`](WatchServerTime.md)
+- [`WatchTokenInfo`](WatchTokenInfo.md)
+- [`WatchTokenResponse`](WatchTokenResponse.md)
+- [`WatchVehicleConfiguration`](WatchVehicleConfiguration.md)
