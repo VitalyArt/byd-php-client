@@ -26,11 +26,13 @@ final readonly class ChargingService
     {
     }
 
+    /** Fetch the current charging status. */
     public function status(): ChargingStatus
     {
         return $this->serializer->denormalize($this->homepage(), ChargingStatus::class);
     }
 
+    /** Fetch the configured smart-charging schedule. */
     public function schedule(): ChargingSchedule
     {
         $raw = $this->homepage();
@@ -39,11 +41,13 @@ final readonly class ChargingService
         return $this->serializer->denormalize($schedule, ChargingSchedule::class);
     }
 
+    /** Save or update the charging schedule. */
     public function saveSchedule(ChargingScheduleRequest $request): CommandResult
     {
         return $this->serializer->denormalize($this->protocol->request(Endpoint::CHARGING_SAVE, $request), CommandResult::class);
     }
 
+    /** Enable or disable smart charging. */
     public function setSmartCharging(bool $enabled): CommandResult
     {
         $raw = $this->protocol->request(Endpoint::CHARGING_TOGGLE, new ChargingToggleRequest($this->vin, $enabled ? '1' : '0'));
@@ -51,6 +55,7 @@ final readonly class ChargingService
         return $this->serializer->denormalize($raw, CommandResult::class);
     }
 
+    /** Start charging and wait for a terminal command result. */
     public function start(): CommandResult
     {
         $serial = null;

@@ -28,6 +28,7 @@ final readonly class TelemetryService
     {
     }
 
+    /** Fetch meaningful realtime telemetry, polling the asynchronous BYD result when needed. */
     public function realtime(): VehicleTelemetry
     {
         $vehicle = $this->vehicles->get($this->vin);
@@ -46,6 +47,7 @@ final readonly class TelemetryService
         );
     }
 
+    /** Fetch a GPS position, polling the asynchronous BYD result when needed. */
     public function gps(): GpsPosition
     {
         $serial = null;
@@ -63,6 +65,7 @@ final readonly class TelemetryService
         );
     }
 
+    /** Fetch cumulative and recent energy consumption data. */
     public function energyConsumption(): EnergyConsumption
     {
         $vehicle = $this->vehicles->get($this->vin);

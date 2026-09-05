@@ -1,0 +1,59 @@
+site_name: BYD API Client for PHP
+site_description: Typed PHP client for the BYD vehicle and Wear OS APIs.
+site_url: https://vitalyart.github.io/byd-php-client/
+repo_url: https://github.com/VitalyArt/byd-php-client
+repo_name: VitalyArt/byd-php-client
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Guides:
+      - Basic client usage: guides/basic-usage.md
+      - Vehicle workflows: guides/vehicle-workflows.md
+      - Remote controls: guides/remote-controls.md
+      - Errors and retries: guides/errors.md
+      - Watch QR authorization: guides/watch-authorization.md
+  - API:
+      - Vehicle API: api/vehicle.md
+      - Watch API: api/watch.md
+  - Reference:
+      - Overview: reference/index.md
+      - Clients: reference/generated/clients/index.md
+      - Configuration: reference/generated/configuration/index.md
+      - Services: reference/generated/services/index.md
+      - Request DTOs: reference/generated/requests/index.md
+      - Response DTOs: reference/generated/responses/index.md
+      - Enums: reference/generated/enums/index.md
+      - Exceptions: reference/generated/exceptions/index.md
+      - Value objects: reference/generated/values/index.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+strict: true

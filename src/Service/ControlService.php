@@ -32,6 +32,7 @@ final readonly class ControlService
     {
     }
 
+    /** Verify the configured or supplied control PIN. */
     public function verifyPin(?string $pin = null): CommandResult
     {
         try {
@@ -50,7 +51,11 @@ final readonly class ControlService
         return $this->serializer->denormalize($raw, CommandResult::class);
     }
 
-    /** @param array<string, mixed>|null $parameters */
+    /**
+     * Execute a remote command and wait for its terminal result.
+     *
+     * @param array<string, mixed>|null $parameters
+     */
     public function execute(RemoteCommand $command, ?array $parameters = null, ?string $pin = null): CommandResult
     {
         $serial = null;

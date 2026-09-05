@@ -2,6 +2,10 @@
 
 Modern, typed and synchronous client for the BYD vehicle API. Requires PHP 8.4+ and uses immutable DTOs, Symfony Serializer attributes, PSR-18 HTTP transport and PSR-3 logging.
 
+Read the full [HTML documentation](https://vitalyart.github.io/byd-php-client/) for installation, practical guides, API overviews and the generated [Reference](https://vitalyart.github.io/byd-php-client/reference/).
+
+To preview the documentation locally, install the tools from `docs/requirements.txt`, run `php tools/generate-reference.php`, then run `mkdocs serve`.
+
 > BYD does not publish this API. Protocol changes may happen without notice.
 
 ## Installation

@@ -29,6 +29,7 @@ final readonly class OtaService
     {
     }
 
+    /** Fetch installed and available OTA version information. */
     public function status(): OtaUpdateInfo
     {
         $request = new OtaVersionRequest($this->vin, $this->config->locale->language);
@@ -36,16 +37,19 @@ final readonly class OtaService
         return $this->serializer->denormalize($this->protocol->request(Endpoint::OTA_VERSION, $request), OtaUpdateInfo::class);
     }
 
+    /** Book an available OTA update. */
     public function book(#[SensitiveParameter] ?string $pin = null): CommandResult
     {
         return $this->command(Endpoint::OTA_BOOKING, $pin);
     }
 
+    /** Cancel a previously booked OTA update. */
     public function cancelBooking(#[SensitiveParameter] ?string $pin = null): CommandResult
     {
         return $this->command(Endpoint::OTA_CANCEL_BOOKING, $pin);
     }
 
+    /** Start an OTA update. */
     public function start(#[SensitiveParameter] ?string $pin = null): CommandResult
     {
         return $this->command(Endpoint::OTA_UPGRADE, $pin);

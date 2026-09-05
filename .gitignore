@@ -26,6 +26,8 @@ Thumbs.db
 
 # Build
 /build/
+/site/
+.venv-docs/
 
 # Composer
 composer.phar
