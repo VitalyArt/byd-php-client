@@ -22,7 +22,11 @@ final class VehicleService
     {
     }
 
-    /** Return all vehicles associated with the authenticated account. @return list<Vehicle> */
+    /**
+     * Return all vehicles associated with the authenticated account.
+     *
+     * @return list<Vehicle>
+     */
     public function all(): array
     {
         $response = $this->protocol->request(Endpoint::VEHICLES, new EmptyRequest());
