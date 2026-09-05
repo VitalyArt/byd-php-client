@@ -14,6 +14,7 @@ use Byd\ApiClient\Crypto\Cryptography;
 use Byd\ApiClient\Crypto\WatchCryptography;
 use Byd\ApiClient\Dto\Protocol\WatchAccountRequest;
 use Byd\ApiClient\Dto\Protocol\WatchCommonRequest;
+use Byd\ApiClient\Enum\CountryCode;
 use Byd\ApiClient\Enum\WatchEndpoint;
 use Byd\ApiClient\Enum\WatchQrStatus;
 use Byd\ApiClient\Infrastructure\SystemSleeper;
@@ -143,7 +144,7 @@ final class WatchClientTest extends TestCase
         return new BydWatchClient(
             new WatchClientConfig(
                 new WatchDeviceProfile('0123456789ABCDEF0123456789ABCDEF', 'SAMSUNG', 'SM-R890'),
-                new Locale('UZ', 'ru', 'Asia/Tashkent'),
+                new Locale(CountryCode::UZ, 'ru', 'Asia/Tashkent'),
             ),
             clock: $clock,
             sleeper: new SystemSleeper(),

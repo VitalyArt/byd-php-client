@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Byd\ApiClient\Tests;
 
 use Byd\ApiClient\BydClient;
-use Byd\ApiClient\Config\ClientConfig;
-use Byd\ApiClient\Config\Credentials;
 use Byd\ApiClient\Contract\NonceGeneratorInterface;
 use Byd\ApiClient\Contract\SecureTransportInterface;
 use Byd\ApiClient\Crypto\Cryptography;
@@ -113,7 +111,8 @@ final class ControlServiceTest extends TestCase
         };
 
         return new BydClient(
-            new ClientConfig(new Credentials('user@example.com', $password)),
+            'user@example.com',
+            $password,
             clock: $clock,
             nonceGenerator: $nonce,
             transport: $transport,

@@ -56,7 +56,7 @@ final class ArchitectureTest extends TestCase
     {
         $client = new ReflectionClass(BydClient::class);
 
-        foreach (['telemetry', 'climate', 'charging', 'controls', 'notifications', 'settings'] as $methodName) {
+        foreach (['telemetry', 'climate', 'charging', 'controls', 'notifications', 'settings', 'ota'] as $methodName) {
             $method = $client->getMethod($methodName);
             $parameters = $method->getParameters();
 

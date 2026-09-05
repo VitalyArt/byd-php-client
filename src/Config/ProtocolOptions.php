@@ -4,12 +4,24 @@ declare(strict_types=1);
 
 namespace Byd\ApiClient\Config;
 
+use Byd\ApiClient\Enum\ApiRegion;
+use Byd\ApiClient\Enum\CountryCode;
 use Byd\ApiClient\Exception\ValidationException;
 
 final readonly class ProtocolOptions
 {
+    public static function forCountry(CountryCode $countryCode): self
+    {
+        return self::forRegion(ApiRegion::forCountry($countryCode));
+    }
+
+    public static function forRegion(ApiRegion $region): self
+    {
+        return new self(baseUrl: $region->value);
+    }
+
     public function __construct(
-        public string $baseUrl = 'https://dilinkappoversea-eu.byd.auto',
+        public string $baseUrl = ApiRegion::EUROPE->value,
         public string $appName = 'pyBYD+0.0.73',
         public string $appVersion = '3.5.0',
         public string $appInnerVersion = '352',

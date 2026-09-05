@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Byd\ApiClient\Enum;
+
+use function strtoupper;
+use function trim;
+
+enum CountryCode: string
+{
+    case AE = 'AE';
+    case AG = 'AG';
+    case AL = 'AL';
+    case AR = 'AR';
+    case AT = 'AT';
+    case AU = 'AU';
+    case AW = 'AW';
+    case BA = 'BA';
+    case BB = 'BB';
+    case BD = 'BD';
+    case BE = 'BE';
+    case BG = 'BG';
+    case BH = 'BH';
+    case BN = 'BN';
+    case BO = 'BO';
+    case BQ = 'BQ';
+    case BR = 'BR';
+    case BS = 'BS';
+    case BT = 'BT';
+    case BZ = 'BZ';
+    case CH = 'CH';
+    case CL = 'CL';
+    case CO = 'CO';
+    case CR = 'CR';
+    case CW = 'CW';
+    case CY = 'CY';
+    case CZ = 'CZ';
+    case DE = 'DE';
+    case DK = 'DK';
+    case DO = 'DO';
+    case EC = 'EC';
+    case EE = 'EE';
+    case EG = 'EG';
+    case ES = 'ES';
+    case FI = 'FI';
+    case FR = 'FR';
+    case GB = 'GB';
+    case GR = 'GR';
+    case GT = 'GT';
+    case GY = 'GY';
+    case HK = 'HK';
+    case HN = 'HN';
+    case HR = 'HR';
+    case HU = 'HU';
+    case ID = 'ID';
+    case IE = 'IE';
+    case IL = 'IL';
+    case IN = 'IN';
+    case IQ = 'IQ';
+    case IS = 'IS';
+    case IT = 'IT';
+    case JM = 'JM';
+    case JO = 'JO';
+    case JP = 'JP';
+    case KH = 'KH';
+    case KR = 'KR';
+    case KW = 'KW';
+    case KY = 'KY';
+    case KZ = 'KZ';
+    case LA = 'LA';
+    case LC = 'LC';
+    case LI = 'LI';
+    case LK = 'LK';
+    case LT = 'LT';
+    case LU = 'LU';
+    case LV = 'LV';
+    case MA = 'MA';
+    case MC = 'MC';
+    case MD = 'MD';
+    case ME = 'ME';
+    case MK = 'MK';
+    case MM = 'MM';
+    case MN = 'MN';
+    case MO = 'MO';
+    case MT = 'MT';
+    case MU = 'MU';
+    case MV = 'MV';
+    case MX = 'MX';
+    case MY = 'MY';
+    case NC = 'NC';
+    case NI = 'NI';
+    case NL = 'NL';
+    case NO = 'NO';
+    case NP = 'NP';
+    case NZ = 'NZ';
+    case OM = 'OM';
+    case PA = 'PA';
+    case PE = 'PE';
+    case PF = 'PF';
+    case PH = 'PH';
+    case PK = 'PK';
+    case PL = 'PL';
+    case PS = 'PS';
+    case PT = 'PT';
+    case PY = 'PY';
+    case QA = 'QA';
+    case RE = 'RE';
+    case RO = 'RO';
+    case RS = 'RS';
+    case SA = 'SA';
+    case SE = 'SE';
+    case SG = 'SG';
+    case SI = 'SI';
+    case SK = 'SK';
+    case SR = 'SR';
+    case SV = 'SV';
+    case TH = 'TH';
+    case TR = 'TR';
+    case TT = 'TT';
+    case UA = 'UA';
+    case UY = 'UY';
+    case UZ = 'UZ';
+    case VA = 'VA';
+    case VN = 'VN';
+    case XK = 'XK';
+    case ZA = 'ZA';
+
+    public static function parse(string $countryCode): ?self
+    {
+        return self::tryFrom(strtoupper(trim($countryCode)));
+    }
+}
